@@ -159,38 +159,88 @@ Want quote comparison with hidden costs, change-order previews, order-by dates f
 
 **Summary line:** `Budget, contractors, payments and timeline in one spreadsheet — with ranked next actions every Monday.`
 
-**Description** (Gumroad supports headings and bullets):
+**Description** (paste as-is; the plain-text layout pastes cleanly into Gumroad's editor):
 ```
-Run your renovation like a pro.
+RENOVATION OS — run your renovation like a pro 🏠
 
-You're spending tens of thousands on your home and managing it yourself. Renovation OS keeps every number, contractor, payment and deadline in one place — and every Monday it tells you exactly what needs your attention.
+Managing your own renovation? Renovation OS is the all-in-one Excel planner that keeps your budget, contractors, payments and timeline under control — and tells you exactly what to do every Monday.
 
-## What it does for you
-- **Ranked next actions** — overdue payments, late tasks, decisions and follow-ups, sorted by urgency automatically.
-- **True cost of quotes** (Pro) — the hidden-cost checklist shows when the cheapest quote is really the most expensive.
-- **Paying-ahead warning** — know when you've paid a contractor more than the work they've done.
-- **Change-order preview** (Pro) — new total, contingency and move-in date before you approve.
-- **Order deadlines** (Pro) — decide-by and order-by dates for every material, from your timeline.
-- **Timeline + Gantt** — one delay updates every date and your move-in forecast.
-- **Forecast & cash flow** — final cost, contingency used and cash needed per month.
+Built for homeowners managing a renovation themselves. Made for Microsoft Excel (Windows & Mac). No macros, no add-ons, no subscriptions.
 
-## Lite or Pro?
-**Lite (7 tabs):** Dashboard, Budget, Contractors, Payments, Timeline, Issues & Punch List.
-**Pro (16 tabs):** everything in Lite + Quotes, Change Orders, Rooms, Selections & Orders, This Week, Vault, Warranty & Maintenance.
+Two versions — pick the one that fits your project:
+• LITE (7 tabs) — the essentials: budget, contractors, payments, timeline and issues
+• PRO (16 tabs) — everything in Lite, plus quotes, change orders, materials, rooms, weekly planner, documents and warranties
 
-## You get
-- DEMO file with a realistic example renovation
-- BLANK file for your project
-- Quick Start Guide (PDF) — set up in 10 minutes
+━━━━━━━━━━━━━━━━━━
+WHY PEOPLE USE IT
+━━━━━━━━━━━━━━━━━━
+✔ Ranked "next actions" — overdue payments, late tasks, decisions and follow-ups, sorted by urgency automatically
+✔ Never pay ahead of the work — get warned when you've paid a contractor more than the work they've done
+✔ One delay? Every date updates — tasks, dependencies and a 52-week Gantt chart
+✔ Know your final cost early — forecast, contingency used and cash needed per month
+✔ The TRUE cost of every quote (Pro) — a hidden-cost checklist shows when the "cheapest" quote is actually the most expensive
+✔ See the impact before you say yes (Pro) — every change request shows your new total, contingency left and move-in date
+✔ Order on time (Pro) — decide-by and order-by dates for tiles, taps and appliances, calculated from your timeline
 
-## Works with
-Microsoft Excel 2016+ or Microsoft 365, Windows or Mac (not Google Sheets / Numbers). Any currency, any tax name, m² or ft². No macros, no subscriptions. 1,000 rows per list.
+━━━━━━━━━━━━━━━━━━
+WHAT'S INSIDE
+━━━━━━━━━━━━━━━━━━
+LITE and PRO:
+• Start Here — 10-minute setup + colour guide
+• Dashboard — KPIs, 🟢🟡🔴 health score, ranked next actions, charts
+• Budget — budget vs committed vs invoiced vs paid + forecast
+• Contractors — contracts, insurance/licence checks, paying-ahead warning, communication log
+• Payments — payment schedule, invoices, 12-month cash flow
+• Timeline — dependencies, delays, Gantt chart
+• Issues & Punch List — problems and snags with owner and deadline
 
-## Good to know
-Digital download — all sales are final once delivered, so please ask any question before you buy. Personal-use licence: please don't share or resell the files. A planning tool, not financial or legal advice.
+PRO only:
+• This Week — Monday plan & Friday review
+• Quotes — compare up to 4 quotes per trade incl. hidden costs, 🏆 winner
+• Change Orders — impact preview before you approve
+• Rooms — one card per room: money, progress, issues
+• Selections & Orders — decisions and order deadlines
+• Vault — links to contracts, invoices and photos + missing-document checks
+• Warranty & Maintenance — expiry dates and home maintenance reminders
+
+━━━━━━━━━━━━━━━━━━
+YOU RECEIVE
+━━━━━━━━━━━━━━━━━━
+• DEMO file — a realistic example renovation so you can explore every feature
+• BLANK file — ready for your own project
+• Quick Start Guide (PDF)
+(Lite buyers receive the Lite DEMO and BLANK files; Pro buyers the Pro files.)
+
+━━━━━━━━━━━━━━━━━━
+EASY TO USE
+━━━━━━━━━━━━━━━━━━
+• Yellow cells = you type. Everything else calculates automatically and is protected, so you can't break a formula.
+• Dropdowns everywhere.
+• Any currency (€, $, £, CHF, kr…), any tax name (VAT, Sales tax, GST…), m² or ft².
+• 1,000 rows per list.
+
+━━━━━━━━━━━━━━━━━━
+REQUIREMENTS
+━━━━━━━━━━━━━━━━━━
+• Microsoft Excel 2016, 2019, 2021, 2024 or Microsoft 365 — Windows or Mac
+• A computer is recommended (not designed for phones)
+• Not compatible with Google Sheets or Apple Numbers
+
+━━━━━━━━━━━━━━━━━━
+PLEASE NOTE
+━━━━━━━━━━━━━━━━━━
+• This is a DIGITAL product — no physical item will be shipped.
+• Instant download after purchase.
+• Because this is a digital file, all sales are final and refunds are not offered once the files are delivered. Please look at all images and ask any question before buying — I'm happy to help.
+• Licensed for personal use by the purchaser only. Sharing, reselling or redistributing the files is not permitted.
+• Renovation OS is a planning tool, not financial, legal or construction advice.
 
 © 2026 Hang Nguyen
 ```
+
+**Version descriptions** (Gumroad shows these next to each version when the buyer chooses):
+- **Lite — 7 tabs:** `The essentials: dashboard with ranked next actions, budget & forecast, contractors with paying-ahead warning, payments & cash flow, timeline with Gantt chart, issues & punch list.`
+- **Pro — 16 tabs:** `Everything in Lite + quote comparison with hidden costs, change-order impact preview, order-by dates for materials, room cards, weekly planner, document vault and warranty tracker.`
 
 **Receipt / thank-you message** (Product ▸ Receipt):
 ```
