@@ -1,7 +1,8 @@
 """After-renovation tabs: Vault (documents & photos) and Warranty & Maintenance."""
 from . import core as C
 from .core import DATE, INT, put, section, write_table
-from .layout import (CON, DOCCHK, MAINT, PHOTO_FIRST, PHOTO_HEADER_ROW, PHOTO_STAGES, ROOM_COUNT,
+from .layout import (CON, DOCCHK, MAINT, PHOTO_COL, PHOTO_FIRST, PHOTO_HEADER_ROW, PHOTO_STAGES,
+                     PROJDOC_FIRST, ROOM_COUNT,
                      ROOMDATA, VAULT, WAR)
 
 
@@ -60,34 +61,39 @@ def build_vault(ctx):
     C.level_cf(ws, f"Q{D.first}:Q{D.last}", f"$R{D.first}")
     C.define(ctx.wb, "DocsMissing", C.S_VAULT, f"$R${D.first}:$R${D.last}")
 
-    section(ws, "L37", "PROJECT DOCUMENTS", "R")
+    P0 = PHOTO_COL
+    stage_cols = [C.col_add(P0, 1 + j) for j in range(len(PHOTO_STAGES))]
+    ws.column_dimensions[C.col_add(P0, -1)].width = 3
+    ws.column_dimensions[P0].width = 22
+    for L in stage_cols:
+        ws.column_dimensions[L].width = 11
+    section(ws, f"{P0}{PROJDOC_FIRST - 1}", "PROJECT DOCUMENTS", stage_cols[-1])
     for i, (lab, kind) in enumerate([("Building permit", "Permit"),
                                      ("Plans / drawings", "Plan"),
                                      ("Inspection reports", "Inspection")]):
-        r = 38 + i
-        ws.merge_cells(f"L{r}:M{r}")
-        put(ws, f"L{r}", lab, "label", bold=True)
-        put(ws, f"N{r}", f'=IF(COUNTIF({tv},"{kind}")>0,"✓","✗ missing")', "auto",
+        r = PROJDOC_FIRST + i
+        put(ws, f"{P0}{r}", lab, "label", bold=True)
+        v = stage_cols[0]
+        put(ws, f"{v}{r}", f'=IF(COUNTIF({tv},"{kind}")>0,"✓","✗ missing")', "auto",
             align="center")
-        C.add_cf(ws, f"N{r}", f'N{r}="✗ missing"', C.BAD, bold=True)
-        C.add_cf(ws, f"N{r}", f'N{r}="✓"', C.GOOD)
+        C.add_cf(ws, f"{v}{r}", f'{v}{r}="✗ missing"', C.BAD, bold=True)
+        C.add_cf(ws, f"{v}{r}", f'{v}{r}="✓"', C.GOOD)
 
-    section(ws, f"L{PHOTO_HEADER_ROW - 1}", "PHOTO TRACKER — ✓ when a Photo row exists for "
-            "room + stage", "R")
-    put(ws, f"L{PHOTO_HEADER_ROW}", "Room", "header")
+    section(ws, f"{P0}{PHOTO_HEADER_ROW - 1}", "PHOTO TRACKER — ✓ when a Photo row exists for "
+            "room + stage", stage_cols[-1])
+    put(ws, f"{P0}{PHOTO_HEADER_ROW}", "Room", "header")
     for j, stg in enumerate(PHOTO_STAGES):
-        put(ws, f"{C.col_add('M', j)}{PHOTO_HEADER_ROW}", stg, "header")
+        put(ws, f"{stage_cols[j]}{PHOTO_HEADER_ROW}", stg, "header")
     for i in range(ROOM_COUNT):
         r = PHOTO_FIRST + i
         src = f"{C.q(C.S_ROOMS)}!{ROOMDATA.c('name', ROOMDATA.first + i)}"
-        put(ws, f"L{r}", f'=IF({src}="","",{src})', "auto", bold=True)
+        put(ws, f"{P0}{r}", f'=IF({src}="","",{src})', "auto", bold=True)
         for j in range(len(PHOTO_STAGES)):
-            L = C.col_add("M", j)
-            put(ws, f"{L}{r}", f'=IF($L{r}="","",IF(COUNTIFS({tv},"Photo",{T.a("room")},$L{r},'
+            L = stage_cols[j]
+            put(ws, f"{L}{r}", f'=IF(${P0}{r}="","",IF(COUNTIFS({tv},"Photo",{T.a("room")},${P0}{r},'
                 f'{T.a("stage")},{L}${PHOTO_HEADER_ROW})>0,"✓","·"))', "auto", align="center")
-        ws.row_dimensions[r].height = 20
-    prng = f"M{PHOTO_FIRST}:R{PHOTO_FIRST + ROOM_COUNT - 1}"
-    C.add_cf(ws, prng, f'M{PHOTO_FIRST}="✓"', C.GOOD, bold=True)
+    prng = f"{stage_cols[0]}{PHOTO_FIRST}:{stage_cols[-1]}{PHOTO_FIRST + ROOM_COUNT - 1}"
+    C.add_cf(ws, prng, f'{stage_cols[0]}{PHOTO_FIRST}="✓"', C.GOOD, bold=True)
     ws.freeze_panes = f"C{T.first}"
     C.protect(ws)
 
@@ -133,17 +139,18 @@ def build_warranty(ctx):
     C.add_cf_fill(ws, rng, f"${T.L('lvl')}{T.first}=3", C.AUTO_BG, C.GREY_TEXT)
 
     M = MAINT
-    section(ws, f"B{M.header_row - 2}", "HOME MAINTENANCE", "J")
+    section(ws, f"{M.L('task')}{M.header_row - 2}", "HOME MAINTENANCE", M.L("status"))
+    ws.column_dimensions["O"].width = 3
     spec2 = [
-        dict(key="task", header="Maintenance task", kind="in"),
-        dict(key="room", header="Room", kind="in", list="Rooms"),
-        dict(key="freq", header="Every (months)", kind="in", fmt=INT, align="center"),
-        dict(key="last", header="Last done", kind="in", fmt=DATE),
-        dict(key="next", header="Next due", kind="auto", fmt=DATE, bold=True,
+        dict(key="task", header="Maintenance task", width=28, kind="in"),
+        dict(key="room", header="Room", width=14, kind="in", list="Rooms"),
+        dict(key="freq", header="Every (months)", width=10, kind="in", fmt=INT, align="center"),
+        dict(key="last", header="Last done", width=13, kind="in", fmt=DATE),
+        dict(key="next", header="Next due", width=13, kind="auto", fmt=DATE, bold=True,
              f='=IF(OR({freq}="",{last}=""),"",DATE(YEAR({last}),MONTH({last})+{freq},DAY({last})))'),
-        dict(key="days", header="Days left", kind="auto", fmt=INT, align="center",
+        dict(key="days", header="Days left", width=10, kind="auto", fmt=INT, align="center",
              f='=IF({next}="","",{next}-AsOf)'),
-        dict(key="status", header="Status", kind="auto", align="center", bold=True,
+        dict(key="status", header="Status", width=18, kind="auto", align="center", bold=True,
              f='=IF({next}="",IF({task}="","","Enter last-done date"),IF({days}<0,"Overdue",'
                'IF({days}<=30,"Due soon","OK")))'),
         dict(key="lvl", header="lvl", kind="hid",
@@ -156,6 +163,6 @@ def build_warranty(ctx):
     ]
     write_table(ws, M, spec2, ctx.data.MAINTENANCE if ctx.demo else [], ctx.dv)
     S = M.L("status")
-    C.level_cf(ws, f"{S}{M.first}:{S}{M.last}", f"$K{M.first}")
+    C.level_cf(ws, f"{S}{M.first}:{S}{M.last}", f"${M.L('lvl')}{M.first}")
     ws.freeze_panes = f"C{T.first}"
     C.protect(ws)

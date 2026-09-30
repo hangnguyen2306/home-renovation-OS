@@ -3,7 +3,7 @@ from openpyxl.styles import Alignment
 
 from . import core as C
 from .core import MONEY, DATE, PCT, INT, put, section, style, pri_from_due, write_table
-from .layout import (BUDGET, BUDGET_TOTAL_ROW, BUDGET_ALERT_ROWS, CASH, CASH30_CELL, CHECKLIST,
+from .layout import (BUDGET, BUDGET_TOTAL_ROW, BUDGET_ALERT_ROWS, BUDGET_RISK_FIRST, CASH, CASH30_CELL, CHECKLIST,
                      CO, COMM, CON, ISS, PAY, PAYSUM, QO, QSUM_FIRST, QEXP_FIRST, QUOTE_BLOCKS,
                      QUOTE_VCOLS, QUOTE_XCOLS, SEL, qblock)
 
@@ -120,30 +120,31 @@ def build_budget(ctx):
     C.define(ctx.wb, "PaidTotal", C.S_BUDGET, f"${T.L('paid')}${tot}")
     C.define(ctx.wb, "ForecastTotal", C.S_BUDGET, f"${T.L('forecast')}${tot}")
 
-    # risk block
+    # risk block (rows R0..R0+4 below the totals)
     F = T.L("forecast")
+    R0 = BUDGET_RISK_FIRST
     risk = [
-        (40, "Pending change orders (not approved yet)", "PendingCO",
+        (R0, "Pending change orders (not approved yet)", "PendingCO",
          "=0" if lite else f'=SUMIFS({CO.a("cost")},{CO.a("status")},"Pending")', MONEY),
-        (41, "Estimated cost of open issues", "IssuesOpenCost",
+        (R0 + 1, "Estimated cost of open issues", "IssuesOpenCost",
          f'=SUM({ISS.a("open_cost")})', MONEY),
-        (42, "RISK (could still be added)", "RiskTotal", f"={F}40+{F}41", MONEY),
-        (43, "FORECAST INCL. RISK", "ForecastRisk", f"=ForecastTotal+{F}42", MONEY),
-        (44, "Contingency used by forecast", "ContUsed",
+        (R0 + 2, "RISK (could still be added)", "RiskTotal", f"={F}{R0}+{F}{R0 + 1}", MONEY),
+        (R0 + 3, "FORECAST INCL. RISK", "ForecastRisk", f"=ForecastTotal+{F}{R0 + 2}", MONEY),
+        (R0 + 4, "Contingency used by forecast", "ContUsed",
          "=IF(ContAmt>0,MAX(0,ForecastTotal-WorkBudget)/ContAmt,0)", PCT),
     ]
-    section(ws, "B39", "RISK — what could still come on top of the forecast", "N")
+    section(ws, f"B{R0 - 1}", "RISK — what could still come on top of the forecast", "N")
     for row, label, name, f, fmt in risk:
         ws.merge_cells(f"B{row}:{C.col_add(F, -1)}{row}")
-        put(ws, f"B{row}", label, "label", bold=row in (42, 43), align="right")
-        put(ws, f"{F}{row}", f, "autogrey" if row < 42 else "band", fmt, bold=True)
+        put(ws, f"B{row}", label, "label", bold=row in (R0 + 2, R0 + 3), align="right")
+        put(ws, f"{F}{row}", f, "autogrey" if row < R0 + 2 else "band", fmt, bold=True)
         C.define(ctx.wb, name, C.S_BUDGET, f"${F}${row}")
-        if lite and row == 40:
-            ws.row_dimensions[row].hidden = True
         ws.row_dimensions[row].height = 22
-    put(ws, f"{T.L('variance')}44", '=REPT("█",ROUND(MIN(1,ContUsed)*10,0))&REPT("░",10-ROUND(MIN(1,ContUsed)*10,0))',
+        if lite and row == R0:
+            ws.row_dimensions[row].hidden = True
+    put(ws, f"{T.L('variance')}{R0 + 4}", '=REPT("█",ROUND(MIN(1,ContUsed)*10,0))&REPT("░",10-ROUND(MIN(1,ContUsed)*10,0))',
         "label", color=C.ACCENT)
-    C.add_cf(ws, f"{F}44", f"{F}44>0.75", C.BAD, bold=True)
+    C.add_cf(ws, f"{F}{R0 + 4}", f"{F}{R0 + 4}>0.75", C.BAD, bold=True)
 
     # budget alerts (hidden helper cells)
     r1, r2 = BUDGET_ALERT_ROWS
@@ -367,7 +368,7 @@ def build_contractors(ctx):
     ws.sheet_properties.tabColor = C.TAB_GREEN
     C.title(ws, "👷 Contractors",
             "What this tab does: one row per contractor — contract, paperwork, progress and "
-            "a warning when you pay ahead of the work. Communication log below.")
+            "a warning when you pay ahead of the work. Communication log on the right →")
     T = CON
     spec = [
         dict(key="company", header="Company", width=26, kind="in"),
@@ -433,15 +434,22 @@ def build_contractors(ctx):
 
     # communication log
     M = COMM
-    section(ws, f"B{M.header_row - 2}", "COMMUNICATION LOG — every call, email and site "
-            "conversation. Follow-ups turn into alerts.", "K")
+    section(ws, f"{M.L('who')}{M.header_row - 1}", "COMMUNICATION LOG — every call, email and "
+            "site conversation. Follow-ups turn into alerts.", M.L("done"))
+    ws.column_dimensions["Z"].width = 3
+    jump = put(ws, "B4", "💬 Communication log → (scroll right, column AA)", "label", bold=True,
+               color=C.ACCENT)
+    jump.hyperlink = f"#{C.q(C.S_CON)}!{M.L('who')}{M.header_row}"
+    jump.protection = C.UNLOCKED   # clickable even though locked cells can't be selected
     spec2 = [
-        dict(key="who", header="Contractor", kind="in", list="Contractors", warn=True),
-        dict(key="date", header="Date", kind="in", fmt=DATE),
-        dict(key="summary", header="What was said / agreed", kind="in", wrap=True),
-        dict(key="fu", header="Follow-up needed?", kind="in", list="YesNo", align="center"),
-        dict(key="fu_date", header="Follow-up date", kind="in", fmt=DATE),
-        dict(key="done", header="Follow-up done?", kind="in", list="YesNo", align="center"),
+        dict(key="who", header="Contractor", width=24, kind="in", list="Contractors", warn=True),
+        dict(key="date", header="Date", width=13, kind="in", fmt=DATE),
+        dict(key="summary", header="What was said / agreed", width=55, kind="in", wrap=True),
+        dict(key="fu", header="Follow-up needed?", width=11, kind="in", list="YesNo",
+             align="center"),
+        dict(key="fu_date", header="Follow-up date", width=13, kind="in", fmt=DATE),
+        dict(key="done", header="Follow-up done?", width=11, kind="in", list="YesNo",
+             align="center"),
         dict(key="due", header="due", kind="hid", fmt=DATE,
              f='=IF(AND({who}<>"",{fu}="Yes",{done}<>"Yes",{fu_date}<>""),{fu_date},"")'),
         dict(key="pri", header="pri", kind="hid", f=f"={pri_from_due('{due}')}"),
@@ -449,9 +457,6 @@ def build_contractors(ctx):
              f='=IF({pri}="","","Follow up with "&{who}&": "&{summary})'),
     ]
     write_table(ws, M, spec2, ctx.data.COMM_LOG if ctx.demo else [], ctx.dv)
-    for r in M.rows():
-        ws.merge_cells(f"D{r}:H{r}")
-    ws.merge_cells(f"D{M.header_row}:H{M.header_row}")
     for L in ("V", "W", "X", "Y"):
         ws.column_dimensions[L].hidden = True
     ws.freeze_panes = f"C{T.first}"
@@ -550,13 +555,18 @@ def build_payments(ctx):
     write_table(ws, P, spec2)
 
     # cash flow
-    section(ws, "Z37", "CASH FLOW — 12 months from project start", "AF")
-    put(ws, "Z38", '="Cash needed in the next 30 days ("&CurSym&")"', "label", bold=True)
-    ws.merge_cells("Z38:AB38")
+    K0 = CASH.L("month")
+    ws.column_dimensions[C.col_add(K0, -1)].width = 3
+    C.widths(ws, {CASH.L(k): w for k, w in (("month", 13), ("c_paid", 12), ("c_sched", 12),
+                                            ("c_total", 12), ("c_cum", 13))})
+    section(ws, f"{K0}4", "CASH FLOW — 12 months from project start", CASH.L("c_cum"))
+    put(ws, f"{K0}5", '="Cash needed in the next 30 days ("&CurSym&")"', "label", bold=True)
+    ws.merge_cells(f"{K0}5:{C.col_add(K0, 2)}5")
     c = put(ws, CASH30_CELL, f'=SUMIFS({pl("unpaid")},{pl("due_date")},"<="&(AsOf+30))', "band",
             MONEY, bold=True, size=12)
     C.comment(c, "All unpaid amounts due in the next 30 days, including anything overdue.")
     C.define(ctx.wb, "Cash30", C.S_PAY, "$" + CASH30_CELL[:2] + "$" + CASH30_CELL[2:])
+    ws.row_dimensions[5].height = 32
     K = CASH
     hdrs = {"month": "Month", "c_paid": cur_hdr("Paid"), "c_sched": cur_hdr("Still to pay"),
             "c_total": cur_hdr("Total"), "c_cum": cur_hdr("Cumulative")}

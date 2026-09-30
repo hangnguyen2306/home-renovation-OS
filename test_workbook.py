@@ -191,8 +191,8 @@ def static_checks(path, lite):
                     continue
                 if ws.title == C.S_START and c.coordinate == "F18":
                     continue   # legend swatch showing the input colour
-                if ws.title == C.S_START and c.hyperlink is not None:
-                    continue   # tab links stay clickable
+                if c.hyperlink is not None:
+                    continue   # navigation links stay clickable
                 yellow = c.fill is not None and c.fill.fgColor is not None and \
                     str(c.fill.fgColor.rgb).endswith(C.INPUT)
                 if yellow and c.protection.locked:
@@ -200,6 +200,19 @@ def static_checks(path, lite):
                 if not yellow and not c.protection.locked:
                     bad += 1
     check(bad == 0, f"{bad} cells where yellow ≠ unlocked")
+    # only input cells may look yellow: no conditional-format highlight in a yellow hue
+    import colorsys
+    for ws in wb.worksheets:
+        for cf in ws.conditional_formatting:
+            for rule in cf.rules:
+                f = rule.dxf.fill if rule.dxf is not None else None
+                rgb = str(f.fgColor.rgb)[-6:] if f is not None and f.fgColor is not None else None
+                if not rgb or not all(ch in "0123456789ABCDEFabcdef" for ch in rgb):
+                    continue
+                r, g, b = (int(rgb[i:i + 2], 16) / 255 for i in (0, 2, 4))
+                h, l_, s_ = colorsys.rgb_to_hls(r, g, b)
+                check(not (40 <= h * 360 <= 70 and s_ > 0.3),
+                      f"{ws.title} CF {cf.sqref}: yellow highlight #{rgb} looks like an input cell")
     # dropdowns exist
     n_dv = sum(len(ws.data_validations.dataValidation) for ws in wb.worksheets)
     check(n_dv > (20 if lite else 40), f"only {n_dv} data validations")
@@ -379,7 +392,7 @@ def main():
     t0 = time.time()
     paths = []
     for ed in ("PRO", "LITE"):
-        for cur in ("EUR", "USD"):
+        for cur in ("EUR",):
             for var in ("DEMO", "BLANK"):
                 paths.append((ed == "LITE", cur, var, B.build(cur, var, DIST, ed)))
     print(f"built {len(paths)} files in {time.time() - t0:.1f}s")

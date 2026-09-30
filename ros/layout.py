@@ -3,14 +3,16 @@ from .core import (S_BUDGET, S_CO, S_CON, S_ISS, S_PAY, S_ROOMS, S_SEL, S_TL, S_
                    Table)
 
 # ------------------------------------------------------------------ BUDGET
-BUDGET = Table(S_BUDGET, 7, 8, 30, [
+MAX_ROWS = 1000   # rows available in every growing list
+BUDGET = Table(S_BUDGET, 7, 8, 50, [
     "cat", "budget", "stage", "best", "contracted", "materials", "cos", "committed",
     "invoiced", "paid", "forecast", "variance", "status",
     "lvl", "chartkey", "due", "pri", "text",
 ])
-BUDGET_TOTAL_ROW = 38
+BUDGET_TOTAL_ROW = BUDGET.last + 1          # 58
 # rows 40..44: risk block; budget alerts live in hidden due/pri/text on rows 40..41
-BUDGET_ALERT_ROWS = (40, 41)
+BUDGET_RISK_FIRST = BUDGET_TOTAL_ROW + 2    # risk block rows 60..64
+BUDGET_ALERT_ROWS = (BUDGET_RISK_FIRST, BUDGET_RISK_FIRST + 1)
 
 # ------------------------------------------------------------------ QUOTES
 QUOTE_BLOCKS = 10
@@ -36,35 +38,36 @@ def qblock(k):
 
 
 # ------------------------------------------------------------------ CONTRACTORS
-CON = Table(S_CON, 5, 6, 30, [
+CON = Table(S_CON, 5, 6, MAX_ROWS, [
     "company", "trade", "cat", "room", "contact", "phone", "email", "value", "co_add", "total",
     "signed", "start", "end", "insured", "licensed", "warranty", "work", "paid", "paid_pct",
     "flag", "lvl", "due", "pri", "text",
 ])
-COMM = Table(S_CON, 40, 41, 150, [
-    "who", "date", "summary", ("fu", "I"), "fu_date", "done", ("due", "W"), "pri", "text",
+# communication log sits to the RIGHT of the contractor list (both can grow to 1000 rows)
+COMM = Table(S_CON, 5, 6, MAX_ROWS, [
+    ("who", "AA"), "date", "summary", "fu", "fu_date", "done", "due", "pri", "text",
 ])
 
 # ------------------------------------------------------------------ PAYMENTS
-PAY = Table(S_PAY, 5, 6, 200, [
+PAY = Table(S_PAY, 5, 6, MAX_ROWS, [
     "party", "milestone", "room", "cat_in", "pct", "fixed", "sched", "due_date", "inv_no",
     "inv_date", "inv_amt", "paid_date", "paid_amt", "status", "cat", "room_auto", "lvl",
     "unpaid", "inv_due", "due", "pri", "text",
 ])
-PAYSUM = Table(S_PAY, 5, 6, 30, [
+PAYSUM = Table(S_PAY, 5, 6, MAX_ROWS, [
     ("name", "Z"), "contract", "invoiced", "paid", "outstanding", "next_date", "next_amt",
 ])
-CASH = Table(S_PAY, 40, 41, 12, [("month", "Z"), "c_paid", "c_sched", "c_total", "c_cum"])
-CASH30_CELL = "AC38"
+CASH = Table(S_PAY, 7, 8, 12, [("month", "AH"), "c_paid", "c_sched", "c_total", "c_cum"])
+CASH30_CELL = "AK5"
 
 # ------------------------------------------------------------------ CHANGE ORDERS
-CO = Table(S_CO, 6, 7, 100, [
+CO = Table(S_CO, 6, 7, MAX_ROWS, [
     "no", "date", "req", "contractor", "cat", "room", "desc", "reason", "cost", "days", "status",
     "dec_date", "new_total", "cont_left", "new_end", "pct_over", "lvl", "due", "pri", "text",
 ])
 
 # ------------------------------------------------------------------ TIMELINE
-TL = Table(S_TL, 6, 7, 150, [
+TL = Table(S_TL, 6, 7, MAX_ROWS, [
     "id", "phase", "task", "room", "contractor", "dur", "pred", "manual", "start", "delay", "end",
     "status", "done_date", "affects", "flag", "code", "first", "okey", "due", "pri", "text",
 ])
@@ -91,7 +94,7 @@ def room_card(k):
 
 
 # ------------------------------------------------------------------ SELECTIONS
-SEL = Table(S_SEL, 7, 8, 150, [
+SEL = Table(S_SEL, 7, 8, MAX_ROWS, [
     "item", "room", "cat", "a_name", "a_price", "b_name", "b_price", "c_name", "c_price",
     "selected", "price", "reason", "supplier", "lead", "task", "need_in", "need", "order_by",
     "decide_by", "ordered", "order_date", "delivery", "delivered", "status",
@@ -100,30 +103,34 @@ SEL = Table(S_SEL, 7, 8, 150, [
 ])
 
 # ------------------------------------------------------------------ ISSUES
-ISS = Table(S_ISS, 7, 8, 200, [
+ISS = Table(S_ISS, 7, 8, MAX_ROWS, [
     "no", "type", "found", "room", "desc", "resp", "sev", "cost", "action", "act_date", "status",
     "res_date", "link", "open", "lvl", "due", "pri", "text", "open_cost", "open_high",
     "open_punch",
 ])
 
 # ------------------------------------------------------------------ VAULT
-VAULT = Table(S_VAULT, 5, 6, 300, [
+VAULT = Table(S_VAULT, 5, 6, MAX_ROWS, [
     "name", "type", "contractor", "room", "stage", "date", "link", "open", "notes",
 ])
-DOCCHK = Table(S_VAULT, 5, 6, 30, [
+DOCCHK = Table(S_VAULT, 5, 6, MAX_ROWS, [
     ("who", "L"), "signed", "contract", "insurance", "quote", "doc_status", "lvl",
 ])
 PHOTO_STAGES = ["Before", "Demolition", "Rough-in", "Walls", "Finishing", "Final"]
-PHOTO_HEADER_ROW = 43
-PHOTO_FIRST = 44
+# project documents + photo tracker sit to the right of the document checklist
+PHOTO_COL = "T"
+PROJDOC_FIRST = 5
+PHOTO_HEADER_ROW = 11
+PHOTO_FIRST = 12
 
 # ------------------------------------------------------------------ WARRANTY
-WAR = Table(S_WAR, 6, 7, 60, [
+WAR = Table(S_WAR, 6, 7, MAX_ROWS, [
     "item", "supplier", "room", "start", "years", "expiry", "days", "status", "link",
     "lvl", "due", "pri", "text",
 ])
-MAINT = Table(S_WAR, 71, 72, 40, [
-    "task", "room", "freq", "last", "next", "days", "status", ("lvl", "K"), "due", "pri", "text",
+# maintenance sits to the right of the warranty list
+MAINT = Table(S_WAR, 6, 7, MAX_ROWS, [
+    ("task", "P"), "room", "freq", "last", "next", "days", "status", "lvl", "due", "pri", "text",
 ])
 
 # ------------------------------------------------------------------ ENGINE blocks

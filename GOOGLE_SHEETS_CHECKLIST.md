@@ -1,10 +1,10 @@
 # Google Sheets — manual verification checklist
 
-Automated tests recalculate every file in LibreOffice and check for errors and expected values. The following behaviours are specific to Google Sheets and **must be checked by hand** after uploading. Do this once per release, on the EUR DEMO file first and then on the BLANK file.
+Automated tests recalculate every file in LibreOffice and check for errors and expected values. The following behaviours are specific to Google Sheets and **must be checked by hand** after uploading. Do this once per release, on the DEMO file first and then on the BLANK file.
 
-**Setup:** Drive ▸ Upload `Renovation_OS_DEMO_EUR.xlsx` ▸ Open with Google Sheets ▸ File ▸ **Save as Google Sheets**. Test on the converted copy, not in the xlsx preview.
+**Setup:** Drive ▸ Upload `Renovation_OS_DEMO.xlsx` ▸ Open with Google Sheets ▸ File ▸ **Save as Google Sheets**. Test on the converted copy, not in the xlsx preview.
 
-Repeat sections 1–6 quickly on `Renovation_OS_LITE_DEMO_EUR.xlsx`. It has 7 visible tabs, the Dashboard shows "Late tasks" and "Payments due soon" instead of decisions and orders, and the health scoreboard has 4 rows.
+Repeat sections 1–6 quickly on `Renovation_OS_LITE_DEMO.xlsx`. It has 7 visible tabs, the Dashboard shows "Late tasks" and "Payments due soon" instead of decisions and orders, and the health scoreboard has 4 rows.
 
 ## 1. Formulas and recalculation
 - [ ] No `#ERROR!`, `#NAME?`, `#REF!` or `#VALUE!` anywhere. Use Ctrl+F on each tab and search for `#`.

@@ -20,7 +20,7 @@ GREY_TEXT = "6B7280"
 DARK = "1F2937"
 LINE = "D1D5DB"
 GOOD = ("D1FAE5", "065F46")
-WARN = ("FEF3C7", "92400E")
+WARN = ("FFEDD5", "9A3412")   # orange: must never look like the yellow input colour
 BAD = ("FEE2E2", "991B1B")
 TAB_TEAL, TAB_GREEN, TAB_ORANGE, TAB_PURPLE, TAB_GREY = "0F5E5E", "2E7D32", "E07B00", "6A1B9A", "9CA3AF"
 

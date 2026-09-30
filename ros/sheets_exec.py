@@ -106,8 +106,6 @@ def build_timeline(ctx):
             h.value = f'=IF({prev}6="","",{prev}6+7)'
         style(h, "header", "dd mmm")
         h.alignment = Alignment(text_rotation=90, horizontal="center", vertical="center")
-        for r in T.rows():
-            ws[f"{L}{r}"].border = C.Border(left=C.Side(style="hair", color="E5E7EB"))
     ws.row_dimensions[6].height = 48
     rng = f"{g0}{T.first}:{gl}{T.last}"
     ov =(f"AND({g0}$6<>\"\",$J{T.first}<>\"\",$J{T.first}<={g0}$6+6,$L{T.first}>={g0}$6)")
@@ -115,9 +113,9 @@ def build_timeline(ctx):
     C.add_cf_fill(ws, rng, f"AND({ov},$Q{T.first}=2)", "9CA3AF", stop=True)
     C.add_cf_fill(ws, rng, ov, "14B8A6", stop=True)
     today = f"${TL_ASOF_CELL[0]}${TL_ASOF_CELL[1:]}"
-    C.add_cf_fill(ws, rng, f'AND({g0}$6<>"",{today}>={g0}$6,{today}<{g0}$6+7)', "FDE68A")
+    C.add_cf_fill(ws, rng, f'AND({g0}$6<>"",{today}>={g0}$6,{today}<{g0}$6+7)', "DBEAFE")
     C.add_cf_fill(ws, f"{g0}6:{gl}6", f'AND({g0}$6<>"",{today}>={g0}$6,{today}<{g0}$6+7)',
-                  "F59E0B", C.WHITE)
+                  "2563EB", C.WHITE)
     fl = T.L("flag")
     frng = f"{fl}{T.first}:{fl}{T.last}"
     C.add_cf(ws, frng, f"$Q{T.first}=3", C.BAD, bold=True)

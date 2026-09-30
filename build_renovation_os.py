@@ -2,10 +2,12 @@
 """Build the Renovation OS workbook (.xlsx) — 100% formulas, no macros, no external links.
 
 Usage:
-    python build_renovation_os.py                      # all 8 files (Pro + Lite) into dist/
+    python build_renovation_os.py                      # 4 files: Pro + Lite, DEMO + BLANK
     python build_renovation_os.py --edition LITE       # Lite only
-    python build_renovation_os.py --currency EUR --variant DEMO
-    python build_renovation_os.py --currency USD --variant BLANK --out somewhere/
+    python build_renovation_os.py --variant DEMO
+
+One file serves every country: the buyer picks currency, tax name, area unit and week start
+on Start Here. (--currency USD only changes those starting defaults.)
 """
 import argparse
 import os
@@ -90,7 +92,8 @@ def protection_password():
 
 def file_name(edition, variant, currency):
     prefix = "Renovation_OS_LITE" if edition == "LITE" else "Renovation_OS"
-    return f"{prefix}_{variant}_{currency}.xlsx"
+    suffix = "" if currency == "EUR" else f"_{currency}"
+    return f"{prefix}_{variant}{suffix}.xlsx"
 
 
 def build(currency, variant, out_dir, edition="PRO", password=None):
@@ -114,14 +117,15 @@ def build(currency, variant, out_dir, edition="PRO", password=None):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--currency", choices=["EUR", "USD", "ALL"], default="ALL")
+    ap.add_argument("--currency", choices=["EUR", "USD"], default="EUR",
+                    help="starting defaults only; buyers can switch currency on Start Here")
     ap.add_argument("--variant", choices=["DEMO", "BLANK", "ALL"], default="ALL")
     ap.add_argument("--edition", choices=["PRO", "LITE", "ALL"], default="ALL")
     ap.add_argument("--out", default="dist")
     ap.add_argument("--password", help="sheet/workbook protection password "
                     "(default: $RENOVATION_OS_PASSWORD or .protection_password)")
     a = ap.parse_args(argv)
-    curs = ["EUR", "USD"] if a.currency == "ALL" else [a.currency]
+    curs = [a.currency]
     vars_ = ["DEMO", "BLANK"] if a.variant == "ALL" else [a.variant]
     eds = ["PRO", "LITE"] if a.edition == "ALL" else [a.edition]
     for ed in eds:

@@ -24,8 +24,8 @@ Works in **Microsoft Excel 2016+** and **Google Sheets**. No macros, no add-ons 
 
 | File | Use it to… |
 |---|---|
-| `Renovation_OS_DEMO_…xlsx` | Explore first. It holds a realistic ~135k renovation, frozen on 15 Jun 2026 so that every alert and chart shows something. |
-| `Renovation_OS_BLANK_…xlsx` | Your own project. The structure and formulas are the same, and it is empty and ready to fill in. |
+| `Renovation_OS_DEMO.xlsx` | Explore first. It holds a realistic ~135k renovation, frozen on 15 Jun 2026 so that every alert and chart shows something. |
+| `Renovation_OS_BLANK.xlsx` | Your own project. The structure and formulas are the same, and it is empty and ready to fill in. |
 
 *Google Sheets:* go to Drive ▸ New ▸ File upload, then right-click the file ▸ Open with ▸ Google Sheets ▸ File ▸ Save as Google Sheets.
 
@@ -68,6 +68,6 @@ Works in **Microsoft Excel 2016+** and **Google Sheets**. No macros, no add-ons 
 - **Paying ahead of work:** update "% work complete" on Contractors every week. If the % you have paid runs ahead by more than your tolerance (10%), you'll get a ⚠️.
 - **Protected formulas:** every white cell is locked and its formula hidden, so nothing can break by accident. Everything you need to change is a yellow cell.
 - **Licence:** personal use by the purchaser only; do not share, copy or resell (full terms at the bottom of Start Here). Digital product: all sales are final.
-- **Adding rows:** every list has plenty of pre-formatted rows (150–300). Use the next empty yellow row. Don't insert rows in the middle.
+- **Adding rows:** every list has 1,000 ready-made rows (Budget: 50 categories). Use the next empty yellow row. Don't insert rows in the middle. Side tables (communication log, cash flow, maintenance, photo tracker) sit to the **right** of the main list, so scroll right to find them.
 - **Amounts** are shown without a currency symbol in the cells. The symbol appears in the column headers and follows your Currency choice. Thousands separators follow your computer's regional settings.
-- **USD edition:** the tax name defaults to "Sales tax" at 8%. Set your local rate on Start Here, or 0% if you enter every price including tax.
+- **Any country, one file:** pick your currency ($, £, €, CHF, kr…), tax name (VAT, Sales tax, GST…), tax rate, m² or ft², and the day your week starts on Start Here. Everything follows.
