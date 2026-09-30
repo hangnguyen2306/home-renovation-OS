@@ -1,6 +1,6 @@
 # Renovation OS — Build Plan & Cell Map
 
-Status: **draft for review** (no code written yet).
+Status: **built** — all 4 workbooks generated, `test_workbook.py` passes (0 formula errors, demo values match the Python reference model). Deviations from the draft are noted inline as *Built:*.
 
 ---
 
@@ -95,7 +95,7 @@ Row capacities (pre-formatted, validated, formula-filled):
 | Selections | 150 | rows 8–157 |
 | Issues | 200 | rows 8–207 |
 | Vault docs | 300 | rows 6–305 |
-| Warranties / Maintenance | 100 / 40 | Warranty |
+| Warranties / Maintenance | 60 / 40 | Warranty rows 7–66, maintenance rows 72–111 (*Built:* reduced from 100 so maintenance is not 100 rows down) |
 
 ### 2.1 START HERE (teal, gridlines off)
 - B5:C12 **Your project** (yellow C): Project name, Address, Project start, Target move-in, Total budget incl. tax, Total floor area, "Today" override (blank).
@@ -272,7 +272,7 @@ Expected result: overall 🔴 ACTION REQUIRED with ~15–20 alerts, every alert 
 
 ## 7. Open questions (defaults I'll use if you don't answer)
 1. **Demo "today" pinned to 15 Jun 2026** (override cell on Start Here) — OK? *(Default: yes.)*
-2. **USD variant** = same workbook with preference defaults USD $ / Sales tax 0% / ft² / week starts Sunday; same demo figures (demo room areas converted to ft²). *(Default: yes.)*
+2. **USD variant** = same workbook with preference defaults USD $ / Sales tax 8% (*Built:* 8% instead of 0% so the demo's 'price excl. tax' quote shows the normalisation) / ft² / week starts Sunday; same demo figures (demo room areas converted to ft²). *(Default: yes.)*
 3. **Currency symbol only in headers/labels, not in the number cells** (required for a switchable currency that works in Google Sheets). *(Default: yes.)*
 4. **Predecessor-above rule** in Timeline (prevents circular refs) — acceptable? *(Default: yes, with a visible warning flag.)*
 5. **Room attribution of money**: contractors get one "Main room" (or "Whole house"), payments/selections/COs carry their own room tag. Whole-house items are not split across rooms. OK? *(Default: yes.)*
