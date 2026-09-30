@@ -2,7 +2,8 @@
 """Build the Renovation OS workbook (.xlsx) — 100% formulas, no macros, no external links.
 
 Usage:
-    python build_renovation_os.py                      # all 4 files into dist/
+    python build_renovation_os.py                      # all 8 files (Pro + Lite) into dist/
+    python build_renovation_os.py --edition LITE       # Lite only
     python build_renovation_os.py --currency EUR --variant DEMO
     python build_renovation_os.py --currency USD --variant BLANK --out somewhere/
 """
@@ -25,14 +26,15 @@ M2_TO_FT2 = 10.7639
 
 
 class Context:
-    def __init__(self, currency, demo):
+    def __init__(self, currency, demo, lite=False):
         self.code = currency
         self.cur = PRESETS[currency]
         self.demo = demo
+        self.lite = lite
         self.data = demo_data
         self.wb = Workbook()
         self.wb.remove(self.wb.active)
-        for name in C.SHEET_ORDER:
+        for name in (C.LITE_SHEETS if lite else C.SHEET_ORDER):
             self.wb.create_sheet(name)
         normal = self.wb._named_styles["Normal"]
         normal.font = Font(name=C.FONT, size=10)
@@ -48,25 +50,37 @@ class Context:
         return round(m2 * M2_TO_FT2) if self.cur["area"] == "ft²" else m2
 
 
-def build(currency, variant, out_dir):
-    ctx = Context(currency, variant == "DEMO")
+BUILDERS = [
+    (C.S_START, sheets_setup.build_start),
+    (C.S_BUDGET, sheets_money.build_budget),
+    (C.S_QUOTES, sheets_money.build_quotes),
+    (C.S_CON, sheets_money.build_contractors),
+    (C.S_PAY, sheets_money.build_payments),
+    (C.S_CO, sheets_money.build_change_orders),
+    (C.S_TL, sheets_exec.build_timeline),
+    (C.S_ROOMS, sheets_exec.build_rooms),
+    (C.S_SEL, sheets_exec.build_selections),
+    (C.S_ISS, sheets_exec.build_issues),
+    (C.S_VAULT, sheets_after.build_vault),
+    (C.S_WAR, sheets_after.build_warranty),
+    (C.S_ENG, sheets_overview.build_engine),
+    (C.S_DASH, sheets_overview.build_dashboard),
+    (C.S_WEEK, sheets_overview.build_this_week),
+    (C.S_LISTS, sheets_setup.build_lists),
+]
+
+
+def file_name(edition, variant, currency):
+    prefix = "Renovation_OS_LITE" if edition == "LITE" else "Renovation_OS"
+    return f"{prefix}_{variant}_{currency}.xlsx"
+
+
+def build(currency, variant, out_dir, edition="PRO"):
+    ctx = Context(currency, variant == "DEMO", lite=edition == "LITE")
     sheets_setup.register_lists(ctx)
-    sheets_setup.build_start(ctx)
-    sheets_money.build_budget(ctx)
-    sheets_money.build_quotes(ctx)
-    sheets_money.build_contractors(ctx)
-    sheets_money.build_payments(ctx)
-    sheets_money.build_change_orders(ctx)
-    sheets_exec.build_timeline(ctx)
-    sheets_exec.build_rooms(ctx)
-    sheets_exec.build_selections(ctx)
-    sheets_exec.build_issues(ctx)
-    sheets_after.build_vault(ctx)
-    sheets_after.build_warranty(ctx)
-    sheets_overview.build_engine(ctx)
-    sheets_overview.build_dashboard(ctx)
-    sheets_overview.build_this_week(ctx)
-    sheets_setup.build_lists(ctx)
+    for sheet, fn in BUILDERS:
+        if sheet in ctx.wb.sheetnames:
+            fn(ctx)
 
     errors = C.lint_workbook(ctx.wb)
     if errors:
@@ -74,7 +88,7 @@ def build(currency, variant, out_dir):
         raise SystemExit(f"Formula lint failed: {len(errors)} problem(s)")
     ctx.wb.active = 0
     os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, f"Renovation_OS_{variant}_{currency}.xlsx")
+    path = os.path.join(out_dir, file_name(edition, variant, currency))
     ctx.wb.save(path)
     return path
 
@@ -83,13 +97,16 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--currency", choices=["EUR", "USD", "ALL"], default="ALL")
     ap.add_argument("--variant", choices=["DEMO", "BLANK", "ALL"], default="ALL")
+    ap.add_argument("--edition", choices=["PRO", "LITE", "ALL"], default="ALL")
     ap.add_argument("--out", default="dist")
     a = ap.parse_args(argv)
     curs = ["EUR", "USD"] if a.currency == "ALL" else [a.currency]
     vars_ = ["DEMO", "BLANK"] if a.variant == "ALL" else [a.variant]
-    for cur in curs:
-        for var in vars_:
-            print("built", build(cur, var, a.out))
+    eds = ["PRO", "LITE"] if a.edition == "ALL" else [a.edition]
+    for ed in eds:
+        for cur in curs:
+            for var in vars_:
+                print("built", build(cur, var, a.out, ed))
 
 
 if __name__ == "__main__":

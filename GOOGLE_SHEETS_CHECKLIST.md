@@ -4,6 +4,8 @@ Automated tests recalculate every file in LibreOffice and check for errors and e
 
 **Setup:** Drive ▸ Upload `Renovation_OS_DEMO_EUR.xlsx` ▸ Open with Google Sheets ▸ File ▸ **Save as Google Sheets**. Test on the converted copy, not in the xlsx preview.
 
+Repeat sections 1–6 quickly on `Renovation_OS_LITE_DEMO_EUR.xlsx`. It has 7 visible tabs, the Dashboard shows "Late tasks" and "Payments due soon" instead of decisions and orders, and the health scoreboard has 4 rows.
+
 ## 1. Formulas and recalculation
 - [ ] No `#ERROR!`, `#NAME?`, `#REF!` or `#VALUE!` anywhere. Use Ctrl+F on each tab and search for `#`.
 - [ ] **Start Here ▸ C33** shows `€` and **C34** shows `15 Jun 2026` (DEMO).

@@ -517,3 +517,36 @@ FRIDAY_NOTES = {
     "risk": "Kitchen install on 2 Jul depends on drywall — tight.",
     "next": "1) Decide bathroom 2 tiles  2) Pay FlowRight after re-route fixed  3) Chase electrician insurance",
 }
+
+
+# Lite has no Selections & Orders tab: big material suppliers are tracked as contractors.
+LITE_SUPPLIERS = [
+    dict(company="StoneWorks", trade="Quartz worktop (supply)", cat="Kitchen", room="Kitchen",
+         contact="Order desk", phone="+31 20 555 0101", email="orders@stoneworks.example",
+         value=2450, signed="Yes", start=D(2026, 6, 1), end=D(2026, 6, 26), insured="Yes",
+         licensed="Yes", warranty=10, work=0.0),
+    dict(company="ApplianceHub", trade="Kitchen appliances (supply)", cat="Appliances",
+         room="Kitchen", contact="Web shop", phone="+31 20 555 0102",
+         email="service@appliancehub.example", value=3230, signed="Yes", start=D(2026, 5, 25),
+         end=D(2026, 7, 8), insured="Yes", licensed="Yes", warranty=2, work=0.4),
+    dict(company="BathWorld", trade="Vanity + shower enclosure (supply)", cat="Bathrooms",
+         room="Bathroom 1", contact="Showroom", phone="+31 20 555 0103",
+         email="sales@bathworld.example", value=2040, signed="Yes", start=D(2026, 5, 20),
+         end=D(2026, 6, 30), insured="Yes", licensed="Yes", warranty=5, work=0.55),
+]
+
+
+def contractors(lite=False):
+    """Contractor rows for an edition. Lite has no Change Orders tab, so approved change
+    orders are folded into the contract value (as a homeowner would do by hand)."""
+    if not lite:
+        return CONTRACTORS
+    out = []
+    for c in CONTRACTORS:
+        extra = sum(x["cost"] for x in CHANGE_ORDERS
+                    if x["contractor"] == c["company"] and x["status"] == "Approved")
+        c = dict(c)
+        if extra:
+            c["value"] = (c.get("value") or 0) + extra
+        out.append(c)
+    return out + LITE_SUPPLIERS

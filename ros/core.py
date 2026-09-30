@@ -61,6 +61,8 @@ S_ENG = "Engine"
 S_LISTS = "Lists"
 SHEET_ORDER = [S_START, S_DASH, S_WEEK, S_BUDGET, S_QUOTES, S_CON, S_PAY, S_CO, S_TL,
                S_ROOMS, S_SEL, S_ISS, S_VAULT, S_WAR, S_ENG, S_LISTS]
+# Lite edition: the core money + schedule loop only (other tabs are not in the file at all).
+LITE_SHEETS = [S_START, S_DASH, S_BUDGET, S_CON, S_PAY, S_TL, S_ISS, S_ENG, S_LISTS]
 
 
 def q(sheet):
@@ -341,8 +343,10 @@ class Validations:
     def __init__(self, lists):
         self.lists = lists
         self.pending = {}
+        self.force_warn = set()   # lists where typing a value not in the list is allowed
 
     def add(self, ws, list_name, rng, warn=False):
+        warn = warn or list_name in self.force_warn
         key = (ws.title, list_name, warn)
         if key not in self.pending:
             src = self.lists.ref(list_name)
@@ -406,8 +410,13 @@ def lint_formula(f):
     return problems
 
 
+_SHEET_REF = re.compile(r"'((?:[^']|'')+)'!")
+
+
 def lint_workbook(wb):
     errors = []
+    sheets = set(wb.sheetnames)
+    names = set(wb.defined_names.keys())
     for ws in wb.worksheets:
         for row in ws.iter_rows():
             for c in row:
@@ -415,6 +424,13 @@ def lint_workbook(wb):
                 if isinstance(v, str) and v.startswith("="):
                     for p in lint_formula(v):
                         errors.append(f"{ws.title}!{c.coordinate}: {p}: {v[:120]}")
+                    for s in _SHEET_REF.findall(v):
+                        if s.replace("''", "'") not in sheets:
+                            errors.append(f"{ws.title}!{c.coordinate}: missing sheet '{s}'")
+    for n, dn in wb.defined_names.items():
+        for s in _SHEET_REF.findall(dn.attr_text):
+            if s.replace("''", "'") not in sheets:
+                errors.append(f"name {n}: missing sheet '{s}'")
         for cf in ws.conditional_formatting:
             for rule in cf.rules:
                 for fml in rule.formula or []:

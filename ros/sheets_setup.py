@@ -41,10 +41,14 @@ def register_lists(ctx):
     L.register("Categories", [
         f'=IF({C.q(C.S_BUDGET)}!{BUDGET.c("cat", r)}="","",{C.q(C.S_BUDGET)}!{BUDGET.c("cat", r)})'
         for r in BUDGET.rows()])
-    L.register("Rooms", [
-        f'=IF({C.q(C.S_ROOMS)}!{ROOMDATA.c("name", r)}="","",'
-        f'{C.q(C.S_ROOMS)}!{ROOMDATA.c("name", r)})' for r in ROOMDATA.rows()]
-        + ["Whole house"])
+    if ctx.lite:   # no Rooms tab: fixed room list, and any other name may be typed
+        L.register("Rooms", [n for n in ctx.data.BLANK_ROOM_NAMES[:6]] + ["Whole house"])
+        ctx.dv.force_warn.add("Rooms")
+    else:
+        L.register("Rooms", [
+            f'=IF({C.q(C.S_ROOMS)}!{ROOMDATA.c("name", r)}="","",'
+            f'{C.q(C.S_ROOMS)}!{ROOMDATA.c("name", r)})' for r in ROOMDATA.rows()]
+            + ["Whole house"])
     L.register("Contractors", [
         f'=IF({C.q(C.S_CON)}!{CON.c("company", r)}="","",{C.q(C.S_CON)}!{CON.c("company", r)})'
         for r in CON.rows()])
@@ -123,7 +127,7 @@ def build_start(ctx):
     wb = ctx.wb
     ws.sheet_view.showGridLines = False
     ws.sheet_properties.tabColor = C.TAB_TEAL
-    C.title(ws, "🏠 Renovation OS — Start Here",
+    C.title(ws, "🏠 Renovation OS Lite — Start Here" if ctx.lite else "🏠 Renovation OS — Start Here",
             "What this tab does: set up your project once (yellow cells), then follow the "
             "5 steps on the right.")
     C.widths(ws, {"B": 34, "C": 22, "D": 50, "E": 3, "F": 5, "G": 16, "H": 16, "I": 16,
@@ -146,7 +150,19 @@ def build_start(ctx):
         "WeekStart": cur["week"], "BudgetWarnPct": 0.05, "ContPct": 0.10, "AlertDays": 7,
         "DecideBuf": 7, "OrderBuf": 5, "OverpayTol": 0.10,
     }
-    for row, name, label, lst, fmt, hint, note in START_INPUTS:
+    inputs = START_INPUTS
+    if ctx.lite:   # these settings only drive Quotes / Selections (Pro): leave them out and
+        skip = {"VatRate", "DefInclTax", "DecideBuf", "OrderBuf"}   # close the gaps
+        inputs, prev, shift = [], None, 0
+        for row, name, *rest in START_INPUTS:
+            if prev is not None and row - prev > 2:
+                shift = 0   # new section
+            prev = row
+            if name in skip:
+                shift += 1
+                continue
+            inputs.append((row - shift, name, *rest))
+    for row, name, label, lst, fmt, hint, note in inputs:
         lab = ws[f"B{row}"]
         if name == "TotalBudget":
             label = '="Total budget incl. "&TaxWord&" ("&CurSym&")"'
@@ -202,6 +218,13 @@ def build_start(ctx):
         ("Every Monday open Dashboard + This Week", "Do the ranked actions. On Friday fill "
          "the Friday Review. That's the whole routine."),
     ]
+    if ctx.lite:
+        steps[2] = ("Contractors + Payments: who you pay, and when", "Enter each contract and "
+                    "its payment milestones — you get a warning if you pay ahead of the work.")
+        steps[3] = ("Timeline: set durations and dependencies", "Dates, the Gantt chart and "
+                    "late-task alerts follow automatically.")
+        steps[4] = ("Every Monday open the Dashboard", "Do the ranked actions, top to bottom. "
+                    "That's the whole routine.")
     r = 5
     for i, (head, body) in enumerate(steps, 1):
         n = ws[f"F{r}"]
@@ -256,6 +279,7 @@ def build_start(ctx):
         (C.S_VAULT, "Links to every document and photo + what is missing."),
         (C.S_WAR, "Warranties and home maintenance after the renovation."),
     ]
+    tabs = [t for t in tabs if t[0] in ctx.wb.sheetnames]
     for i, (name, desc) in enumerate(tabs):
         rr = 26 + i
         c = ws[f"F{rr}"]
@@ -269,5 +293,15 @@ def build_start(ctx):
         link.font = C.Font(name=C.FONT, size=10, bold=True, color=C.ACCENT, underline="single")
         ws.merge_cells(f"I{rr}:K{rr}")
         put(ws, f"I{rr}", desc, "label", color=C.GREY_TEXT)
+    if ctx.lite:
+        rr = 26 + len(tabs) + 1
+        ws.merge_cells(f"F{rr}:K{rr + 1}")
+        up = put(ws, f"F{rr}", "⭐ Renovation OS Pro adds: quote comparison with hidden costs, "
+                 "change-order impact preview, decide-by / order-by dates for materials, room "
+                 "cards, This Week planner, document vault and warranty tracker.", "band",
+                 wrap=True, border=False)
+        up.alignment = Alignment(wrap_text=True, vertical="center", indent=1)
+        ws.row_dimensions[rr].height = 22
+        ws.row_dimensions[rr + 1].height = 22
     ws.freeze_panes = "A3"
     C.protect(ws)

@@ -6,10 +6,8 @@ from openpyxl.styles import Alignment
 
 from . import core as C
 from .core import DATE, INT, MONEY, PCT, put, section, style
-from .layout import (BUDGET, CASH, CO, ENGINE_BLOCKS, ENGINE_FIRST, ENGINE_LAST, ISS, PAY, SEL,
-                     TL, TOP_N, CON)
-
-E_RNG = lambda col: f"${col}${ENGINE_FIRST}:${col}${ENGINE_LAST}"  # noqa: E731
+from .layout import (BUDGET, CASH, CO, ENGINE_FIRST, ISS, PAY, SEL, TL, TOP_N, CON,
+                     engine_blocks)
 
 
 # ======================================================================= ENGINE
@@ -20,8 +18,11 @@ def build_engine(ctx):
     for i, h in enumerate(hdr):
         c = ws.cell(row=1, column=i + 1, value=h)
         c.font = C.font(10, True)
+    blocks = engine_blocks(ctx.lite)
+    last = ENGINE_FIRST + sum(b[3] for b in blocks) - 1
+    E_RNG = lambda col: f"${col}${ENGINE_FIRST}:${col}${last}"  # noqa: E731
     r = ENGINE_FIRST
-    for label, sheet, first, n, tcol, dcol, pcol in ENGINE_BLOCKS:
+    for label, sheet, first, n, tcol, dcol, pcol in blocks:
         qs = C.q(sheet)
         for sr in range(first, first + n):
             ws[f"A{r}"] = label
@@ -31,11 +32,15 @@ def build_engine(ctx):
             ws[f"D{r}"] = f"={qs}!{pcol}{sr}"
             ws[f"E{r}"] = (f'=IF(OR(B{r}="",C{r}="",D{r}=""),"",D{r}*100000+(C{r}-DATE(2000,1,1))'
                            f'+ROW()/100000)')
-            ws[f"F{r}"] = f'=IF(E{r}="","",IF(C{r}>WeekEndDate,"",E{r}))'
+            if not ctx.lite:   # week ranking only feeds This Week (Pro)
+                ws[f"F{r}"] = f'=IF(E{r}="","",IF(C{r}>WeekEndDate,"",E{r}))'
             r += 1
-    assert r - 1 == ENGINE_LAST
+    assert r - 1 == last
     # ranked outputs
-    for base, key_col, title in (("H", "E", "TOP 25 (all)"), ("P", "F", "TOP 25 (due by week end)")):
+    outputs = [("H", "E", "TOP 25 (all)")]
+    if not ctx.lite:
+        outputs.append(("P", "F", "TOP 25 (due by week end)"))
+    for base, key_col, title in outputs:
         cols = [C.col_add(base, i) for i in range(7)]
         for L, h in zip(cols, ["Rank", "Key", "Row", "Tab", "Alert", "Due", "Priority"]):
             ws[f"{L}1"] = h
@@ -54,8 +59,9 @@ def build_engine(ctx):
         ws[f"{base}28"] = title
     stats = [("AlertCount", f"=COUNT({E_RNG('E')})"),
              ("OverdueCount", f'=COUNTIFS({E_RNG("C")},"<"&AsOf,{E_RNG("D")},">=1")'),
-             ("UrgentCount", f"=COUNTIF({E_RNG('D')},1)"),
-             ("WeekAlertCount", f"=COUNT({E_RNG('F')})")]
+             ("UrgentCount", f"=COUNTIF({E_RNG('D')},1)")]
+    if not ctx.lite:
+        stats.append(("WeekAlertCount", f"=COUNT({E_RNG('F')})"))
     for i, (name, f) in enumerate(stats):
         ws[f"X{i + 2}"] = name
         ws[f"Y{i + 2}"] = f
@@ -148,6 +154,10 @@ def build_dashboard(ctx):
          ("Decisions waiting", "=DecisionsWaiting", INT, '="see Selections & Orders"'),
          ("Orders due", "=OrdersDue+OrdersLate", INT, '=OrdersLate&" already late"')],
     ]
+    if ctx.lite:   # no Selections & Orders tab: show timeline + payment pressure instead
+        cards[2][3] = ("Late tasks", f"=COUNTIF({TL.a('code')},3)", INT, '="see Timeline"')
+        cards[2][4] = ("Payments due soon", f"=COUNTIF({PAY.a('lvl')},1)", INT,
+                       '="within "&AlertDays&" days"')
     tops = [4, 8, 12]
     value_cells = {}
     for ri, row in enumerate(cards):
@@ -193,8 +203,11 @@ def build_dashboard(ctx):
              bold=True)
     C.add_cf(ws, v[(2, 2)], f"{v[(2, 2)]}>0", C.BAD, bold=True)
     C.add_cf(ws, v[(2, 1)], "OpenHigh>0", C.BAD, bold=True)
-    C.add_cf(ws, v[(2, 3)], f"{v[(2, 3)]}>0", C.WARN, bold=True)
-    C.add_cf(ws, v[(2, 4)], "OrdersLate>0", C.BAD, bold=True)
+    if ctx.lite:
+        C.add_cf(ws, v[(2, 3)], f"{v[(2, 3)]}>0", C.BAD, bold=True)
+    else:
+        C.add_cf(ws, v[(2, 3)], f"{v[(2, 3)]}>0", C.WARN, bold=True)
+        C.add_cf(ws, v[(2, 4)], "OrdersLate>0", C.BAD, bold=True)
     C.add_cf(ws, v[(2, 4)], f"{v[(2, 4)]}>0", C.WARN, bold=True)
 
     # ------------------------------------------------------------ HEALTH
@@ -233,6 +246,12 @@ def build_dashboard(ctx):
         (23, "Issues", '=IF(OpenHigh>0,2,IF(SUM(OpenIssues)>0,1,0))',
          '=OpenHigh&" open high-severity · "&SUM(OpenIssues)&" open in total"'),
     ]
+    if ctx.lite:   # no Materials / Decisions rows: Issues moves up, rows 22-23 are hidden
+        del helpers[22]
+        issues = rows[5]
+        rows = rows[:3] + [(21,) + issues[1:]]
+        for r in (22, 23):
+            ws.row_dimensions[r].hidden = True
     for r, name, lvl, reason in rows:
         ws.merge_cells(f"B{r}:C{r}")
         put(ws, f"B{r}", name, "label", bold=True)
@@ -278,8 +297,8 @@ def build_dashboard(ctx):
         ws.row_dimensions[r].height = 30
     _pri_cf(ws, "C28:C37", "$O28")
     C.add_cf(ws, "K28:K37", '$O28=1', C.BAD, bold=True)
-    put(ws, "B38", '=IF(AlertCount>10,"+ "&(AlertCount-10)&" more — the full ranked list of 25 is on '
-        'This Week and in each tab.","")', "note")
+    more = "each tab" if ctx.lite else "This Week and in each tab"
+    put(ws, "B38", f'=IF(AlertCount>10,"+ "&(AlertCount-10)&" more — see {more}.","")', "note")
 
     # ------------------------------------------------------------ CHARTS
     section(ws, "B40", "CHARTS", "K")

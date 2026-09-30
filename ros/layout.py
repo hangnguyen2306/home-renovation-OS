@@ -145,6 +145,14 @@ ENGINE_BLOCKS = [
      BUDGET.L("pri")),
 ]
 ENGINE_FIRST = 2
+LITE_ENGINE_SHEETS = {S_PAY, S_TL, S_CON, S_ISS, S_BUDGET}
+
+
+def engine_blocks(lite=False):
+    """Alert source blocks stacked by the Engine (Lite keeps only its own tabs)."""
+    return [b for b in ENGINE_BLOCKS if not lite or b[1] in LITE_ENGINE_SHEETS]
+
+
 ENGINE_ROWS = sum(b[3] for b in ENGINE_BLOCKS)
 ENGINE_LAST = ENGINE_FIRST + ENGINE_ROWS - 1
 TOP_N = 25

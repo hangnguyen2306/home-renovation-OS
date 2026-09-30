@@ -154,11 +154,11 @@ class Doc:
 
 
 # ---------------------------------------------------------------- static checks
-def static_checks(path):
+def static_checks(path, lite):
     wb = openpyxl.load_workbook(path)
     lint = C.lint_workbook(wb)
     check(not lint, f"{os.path.basename(path)}: lint problems {lint[:3]}")
-    check(wb.sheetnames == C.SHEET_ORDER, f"sheet order {wb.sheetnames}")
+    check(wb.sheetnames == (C.LITE_SHEETS if lite else C.SHEET_ORDER), f"sheet order {wb.sheetnames}")
     for ws in wb.worksheets:
         check(ws.protection.sheet, f"{ws.title} not protected")
     check(wb[C.S_ENG].sheet_state == "hidden" and wb[C.S_LISTS].sheet_state == "hidden",
@@ -189,7 +189,7 @@ def static_checks(path):
     check(bad == 0, f"{bad} cells where yellow ≠ unlocked")
     # dropdowns exist
     n_dv = sum(len(ws.data_validations.dataValidation) for ws in wb.worksheets)
-    check(n_dv > 40, f"only {n_dv} data validations")
+    check(n_dv > (20 if lite else 40), f"only {n_dv} data validations")
 
 
 # ---------------------------------------------------------------- recalc scan
@@ -217,9 +217,9 @@ def recalc_scan(office, path):
 
 
 # ---------------------------------------------------------------- DEMO asserts
-def demo_asserts(D, cur):
-    m = Model(B.PRESETS[cur])
-    tag = f"DEMO {cur}"
+def demo_asserts(D, cur, lite=False):
+    m = Model(B.PRESETS[cur], lite)
+    tag = f"{'LITE ' if lite else ''}DEMO {cur}"
     print(f"   reference: forecast {m.forecast:,.0f}, committed {m.committed:,.0f}, "
           f"alerts {len(m.alerts)}, finish {m.forecast_end}")
     pairs = [("WorkBudget", m.work), ("ContAmt", m.cont), ("CommittedTotal", m.committed),
@@ -228,10 +228,11 @@ def demo_asserts(D, cur):
              ("AlertCount", len(m.alerts)),
              ("OverdueCount", sum(1 for a in m.alerts if a[3] < m.asof)),
              ("UrgentCount", sum(1 for a in m.alerts if a[4] == 1)),
-             ("DecisionsWaiting", sum(s["dec_wait"] for s in m.sel)),
-             ("OrdersDue", sum(s["order_now"] for s in m.sel)),
-             ("OrdersLate", sum(s["order_late"] for s in m.sel)),
              ("OpenHigh", m.open_high)]
+    if not lite:
+        pairs += [("DecisionsWaiting", sum(s["dec_wait"] for s in m.sel)),
+                  ("OrdersDue", sum(s["order_now"] for s in m.sel)),
+                  ("OrdersLate", sum(s["order_late"] for s in m.sel))]
     for name, exp in pairs:
         got = D.nv(name)
         check(near(got, exp), f"{tag}: {name} = {got} expected {exp}")
@@ -262,14 +263,17 @@ def demo_asserts(D, cur):
               f"{tag}: rank {k}: got ({gt} | {gx} | {gd} | {gp}) expected ({tab} | {text} | {due} | {pri})")
     # every alert type fires
     tabs = {a[1] for a in m.alerts}
-    for t in ["Selections & Orders", "Payments", "Quotes", "Change Orders", "Timeline",
-              "Contractors", "Issues & Punch List", "Warranty & Maintenance", "Budget"]:
+    want_tabs = ["Payments", "Timeline", "Contractors", "Issues & Punch List", "Budget"]
+    want = ["Overdue payment", "Payment due", "Late task", "Starts soon", "Paying ahead",
+            "Follow up", "High-severity", "Issue action due", "Punch item", "Forecast is over"]
+    if not lite:
+        want_tabs += ["Selections & Orders", "Quotes", "Change Orders", "Warranty & Maintenance"]
+        want += ["Decision overdue", "Decide:", "Order:", "Order late", "Delivery after",
+                 "Quote expires", "Decide on change order", "Warranty expires", "Maintenance",
+                 "Contingency"]
+    for t in want_tabs:
         check(t in tabs, f"{tag}: no alert from {t}")
-    for prefix in ["Decision overdue", "Decide:", "Order:", "Order late", "Delivery after",
-                   "Overdue payment", "Payment due", "Quote expires", "Decide on change order",
-                   "Late task", "Starts soon", "Paying ahead", "Follow up", "High-severity",
-                   "Issue action due", "Punch item", "Warranty expires", "Maintenance",
-                   "Forecast is over", "Contingency"]:
+    for prefix in want:
         check(any(a[2].startswith(prefix) for a in m.alerts), f"{tag}: no '{prefix}' alert")
     # dashboard top-10 mirrors engine
     check(D.s(C.S_DASH, "D28") == m.alerts[0][2], f"{tag}: Dashboard first action")
@@ -277,11 +281,21 @@ def demo_asserts(D, cur):
           str(len(m.alerts)) in D.s(C.S_DASH, "B26"), f"{tag}: headline {D.s(C.S_DASH, 'B26')}")
     # health
     h = m.health()
-    for r, key in zip(range(17, 24), ["overall", "budget", "timeline", "contractors",
-                                      "materials", "decisions", "issues"]):
+    keys = (["overall", "budget", "timeline", "contractors", "issues"] if lite else
+            ["overall", "budget", "timeline", "contractors", "materials", "decisions", "issues"])
+    for r, key in zip(range(17, 24), keys):
         check(int(D.v(C.S_DASH, f"N{r}")) == h[key],
               f"{tag}: health {key} = {D.v(C.S_DASH, f'N{r}')} expected {h[key]}")
     check("ACTION REQUIRED" in D.s(C.S_DASH, "B17"), f"{tag}: overall banner {D.s(C.S_DASH, 'B17')}")
+    # timeline dates
+    for i, t in enumerate(m.tasks):
+        r = TL.first + i
+        check(D.date(C.S_TL, f"J{r}") == t["start"] and D.date(C.S_TL, f"L{r}") == t["end"],
+              f"{tag}: task {t['task']} dates {D.date(C.S_TL, f'J{r}')}–{D.date(C.S_TL, f'L{r}')} "
+              f"expected {t['start']}–{t['end']}")
+    check(D.s(C.S_START, "C33") == m.sym, f"{tag}: currency symbol")
+    if lite:
+        return
     # quotes: kitchen block
     qb = m.qblocks[0]
     b = qblock(0)
@@ -314,21 +328,14 @@ def demo_asserts(D, cur):
               f"{tag}: CO contingency left")
         check(D.date(C.S_CO, f"{CO.L('new_end')}{r}") == m.forecast_end + timedelta(x["days"]),
               f"{tag}: CO new end")
-    # timeline dates
-    for i, t in enumerate(m.tasks):
-        r = TL.first + i
-        check(D.date(C.S_TL, f"J{r}") == t["start"] and D.date(C.S_TL, f"L{r}") == t["end"],
-              f"{tag}: task {t['task']} dates {D.date(C.S_TL, f'J{r}')}–{D.date(C.S_TL, f'L{r}')} "
-              f"expected {t['start']}–{t['end']}")
     # this week
     exp_ws = m.asof - timedelta(days=(m.asof.weekday() if B.PRESETS[cur]["week"] == "Monday"
                                       else (m.asof.weekday() + 1) % 7))
     check(D.date(C.S_WEEK, "C4") == exp_ws, f"{tag}: week start {D.date(C.S_WEEK, 'C4')}")
-    check(D.s(C.S_START, "C33") == m.sym, f"{tag}: currency symbol")
 
 
-def blank_asserts(D, cur):
-    tag = f"BLANK {cur}"
+def blank_asserts(D, cur, lite=False):
+    tag = f"{'LITE ' if lite else ''}BLANK {cur}"
     check(D.nv("AlertCount") == 0, f"{tag}: AlertCount {D.nv('AlertCount')}")
     check(D.nv("ForecastTotal") == 0, f"{tag}: forecast not 0")
     check(int(D.v(C.S_DASH, "N17")) == 0, f"{tag}: health not green")
@@ -351,28 +358,30 @@ def blank_asserts(D, cur):
     check(D.nv("ForecastEnd") > serial(start), f"{tag}: prefilled timeline has no dates")
     check(D.nv("AlertCount") >= 1, f"{tag}: expected 'starts soon' alerts after entering dates")
     check(D.s(C.S_BUDGET, "C7") == "Budget (R$)", f"{tag}: custom currency header {D.s(C.S_BUDGET, 'C7')}")
-    check(D.date(C.S_WEEK, "C4").weekday() == 6, f"{tag}: week should start on Sunday")
+    if not lite:
+        check(D.date(C.S_WEEK, "C4").weekday() == 6, f"{tag}: week should start on Sunday")
 
 
 def main():
     t0 = time.time()
     paths = []
-    for cur in ("EUR", "USD"):
-        for var in ("DEMO", "BLANK"):
-            paths.append((cur, var, B.build(cur, var, DIST)))
+    for ed in ("PRO", "LITE"):
+        for cur in ("EUR", "USD"):
+            for var in ("DEMO", "BLANK"):
+                paths.append((ed == "LITE", cur, var, B.build(cur, var, DIST, ed)))
     print(f"built {len(paths)} files in {time.time() - t0:.1f}s")
     office = Office()
     try:
-        for cur, var, path in paths:
+        for lite, cur, var, path in paths:
             print(f"── {os.path.basename(path)}")
             n0 = len(FAILS)
-            static_checks(path)
+            static_checks(path, lite)
             doc, D = recalc_scan(office, path)
             try:
                 if var == "DEMO":
-                    demo_asserts(D, cur)
+                    demo_asserts(D, cur, lite)
                 else:
-                    blank_asserts(D, cur)
+                    blank_asserts(D, cur, lite)
             except Exception:
                 traceback.print_exc()
                 FAILS.append(f"{path}: exception during asserts")

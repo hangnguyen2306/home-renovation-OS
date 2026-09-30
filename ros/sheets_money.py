@@ -21,6 +21,7 @@ def build_budget(ctx):
             "committed, invoiced and paid, and forecasts the final cost.")
     T = BUDGET
     tot = BUDGET_TOTAL_ROW
+    lite = ctx.lite
     spec = [
         dict(key="cat", header="Category", width=22, kind="in",
              note="Rename, add or clear categories (up to 30). They feed every Category "
@@ -80,6 +81,18 @@ def build_budget(ctx):
         else:
             row.update(stage="Estimating")
         data.append(row)
+    if lite:   # no Quotes / Selections / Change Orders tabs in Lite
+        for s in spec:
+            if s["key"] == "best":
+                s.update(kind="hid", f='=""')
+            elif s["key"] in ("materials", "cos"):
+                s.update(kind="hid", f="=0")
+            elif s["key"] == "committed":
+                s["note"] = "Signed contracts: money you have promised to spend."
+            elif s["key"] == "forecast":
+                s["note"] = ("Estimating: the highest of budget, committed and invoiced (be "
+                             "pessimistic until signed). Contracted/Complete: committed (or "
+                             "invoiced if higher).")
     write_table(ws, T, spec, data, ctx.dv)
     for L in ("due", "pri", "text"):
         ws.column_dimensions[T.L(L)].hidden = True
@@ -111,7 +124,7 @@ def build_budget(ctx):
     F = T.L("forecast")
     risk = [
         (40, "Pending change orders (not approved yet)", "PendingCO",
-         f'=SUMIFS({CO.a("cost")},{CO.a("status")},"Pending")', MONEY),
+         "=0" if lite else f'=SUMIFS({CO.a("cost")},{CO.a("status")},"Pending")', MONEY),
         (41, "Estimated cost of open issues", "IssuesOpenCost",
          f'=SUM({ISS.a("open_cost")})', MONEY),
         (42, "RISK (could still be added)", "RiskTotal", f"={F}40+{F}41", MONEY),
@@ -125,6 +138,8 @@ def build_budget(ctx):
         put(ws, f"B{row}", label, "label", bold=row in (42, 43), align="right")
         put(ws, f"{F}{row}", f, "autogrey" if row < 42 else "band", fmt, bold=True)
         C.define(ctx.wb, name, C.S_BUDGET, f"${F}${row}")
+        if lite and row == 40:
+            ws.row_dimensions[row].hidden = True
         ws.row_dimensions[row].height = 22
     put(ws, f"{T.L('variance')}44", '=REPT("█",ROUND(MIN(1,ContUsed)*10,0))&REPT("░",10-ROUND(MIN(1,ContUsed)*10,0))',
         "label", color=C.ACCENT)
@@ -402,7 +417,13 @@ def build_contractors(ctx):
              f='=IF({pri}="","","Paying ahead of work: "&{company}&" — paid "&ROUND({paid_pct}*100,0)'
                '&"%, work done "&ROUND({work}*100,0)&"%")'),
     ]
-    data = ctx.data.CONTRACTORS if ctx.demo else []
+    if ctx.lite:
+        for s in spec:
+            if s["key"] == "co_add":
+                s.update(kind="hid", f="=0")
+            elif s["key"] == "value":
+                s["note"] = "Signed contract amount incl. tax. Add approved extras to it."
+    data = ctx.data.contractors(ctx.lite) if ctx.demo else []
     write_table(ws, T, spec, data, ctx.dv)
     C.level_cf(ws, f"{T.L('flag')}{T.first}:{T.L('flag')}{T.last}", f"${T.L('lvl')}{T.first}")
     for key in ("insured", "licensed"):

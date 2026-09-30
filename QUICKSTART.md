@@ -6,6 +6,20 @@ Works in **Microsoft Excel 2016+** and **Google Sheets**. No macros, no add-ons 
 
 ---
 
+## Lite or Pro?
+
+| | **Lite** | **Pro** |
+|---|---|---|
+| Tabs | Start Here, Dashboard, Budget, Contractors, Payments, Timeline, Issues | Lite + Quotes, Change Orders, Rooms, Selections & Orders, This Week, Vault, Warranty & Maintenance |
+| Ranked next actions, health scoreboard, charts | ✓ | ✓ |
+| Paying-ahead-of-work warning, cash flow, Gantt | ✓ | ✓ |
+| Quote comparison with hidden costs | – | ✓ |
+| Change-order impact preview | – | ✓ |
+| Decide-by / order-by dates for materials | – | ✓ |
+| Room cards, weekly planner, document vault, warranties | – | ✓ |
+
+**Lite tip:** there is no Change Orders tab, so add approved extras to the contractor's contract value. There is no Selections tab either, so enter big material suppliers (worktop, appliances, sanitary ware) as contractors.
+
 ## Which file do I open?
 
 | File | Use it to… |

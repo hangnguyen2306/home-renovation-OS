@@ -7,8 +7,8 @@ from datetime import date, timedelta
 
 import demo_data as d
 from ros import core as C
-from ros.layout import (CHECKLIST, CO as T_CO, COMM, CON, ENGINE_BLOCKS, ENGINE_FIRST, ISS, MAINT,
-                        PAY, QEXP_FIRST, SEL, TL, WAR, BUDGET_ALERT_ROWS)
+from ros.layout import (CHECKLIST, CO as T_CO, COMM, CON, ENGINE_FIRST, ISS, MAINT, PAY,
+                        QEXP_FIRST, SEL, TL, WAR, BUDGET_ALERT_ROWS, engine_blocks)
 
 EPOCH = date(2000, 1, 1)
 
@@ -25,8 +25,10 @@ def fixed(x):
 
 
 class Model:
-    def __init__(self, preset):
+    def __init__(self, preset, lite=False):
         self.p = preset
+        self.lite = lite
+        self.contractors = d.contractors(lite)
         self.sym = {"EUR €": "€", "USD $": "$"}[preset["currency"]]
         self.rate = preset["rate"]
         s = d.SETUP
@@ -80,13 +82,13 @@ class Model:
 
     # ------------------------------------------------------------ contractors / COs
     def _contractors(self):
-        self.cos = d.CHANGE_ORDERS
+        self.cos = [] if self.lite else d.CHANGE_ORDERS
         paid = {}
         for p in d.PAYMENTS:
             if p.get("paid_amt"):
                 paid[p["party"]] = paid.get(p["party"], 0) + p["paid_amt"]
         self.con = {}
-        for c in d.CONTRACTORS:
+        for c in self.contractors:
             co_add = sum(x["cost"] for x in self.cos
                          if x["contractor"] == c["company"] and x["status"] == "Approved")
             total = (c.get("value") or 0) + co_add
@@ -131,7 +133,7 @@ class Model:
     def _selections(self):
         self.sel = []
         W = timedelta(days=self.AD)
-        for s in d.SELECTIONS:
+        for s in ([] if self.lite else d.SELECTIONS):
             price = {"A": s.get("a_price"), "B": s.get("b_price"),
                      "C": s.get("c_price")}.get(s.get("selected"))
             need = s.get("need_in") or (self.task_start.get(s["task"]) if s.get("task") else None)
@@ -169,7 +171,7 @@ class Model:
     def _quotes(self):
         self.qblocks = []
         weights = dict(price=40, time=20, war=15, comp=15, gut=10)
-        for b in d.QUOTES:
+        for b in ([] if self.lite else d.QUOTES):
             rows = []
             for c in b["contractors"]:
                 norm = c["price"] * (1 + self.rate) if c["incl"] == "No" else c["price"]
@@ -201,7 +203,7 @@ class Model:
         self.cats = []
         for name, bud, stage in d.CATEGORIES:
             best = min([b["best"] for b in self.qblocks if b["cat"] == name], default=None)
-            contracted = sum(c.get("value") or 0 for c in d.CONTRACTORS
+            contracted = sum(c.get("value") or 0 for c in self.contractors
                              if c["cat"] == name and c.get("signed") == "Yes")
             materials = sum(s["price"] or 0 for s in self.sel if s["cat"] == name)
             cos = sum(x["cost"] for x in self.cos if x["cat"] == name and x["status"] == "Approved")
@@ -235,14 +237,14 @@ class Model:
     def _alerts(self):
         base = {}
         r = ENGINE_FIRST
-        for blk in ENGINE_BLOCKS:
+        for blk in engine_blocks(self.lite):
             base[(blk[1], blk[2])] = r
             r += blk[3]
         A = self.alerts
         W = timedelta(days=self.AD)
 
         def add(sheet, first, idx, tab, text, due, pri):
-            if pri is None or due is None:
+            if pri is None or due is None or (sheet, first) not in base:
                 return
             A.append((base[(sheet, first)] + idx, tab, text, due, pri))
 
@@ -297,7 +299,7 @@ class Model:
                 text = ("Should have started: " if due < self.asof else "Starts soon: ") + t["task"] + tail
                 add(C.S_TL, TL.first, i, "Timeline", text, due, self.pri(due))
 
-        for i, c in enumerate(d.CONTRACTORS):
+        for i, c in enumerate(self.contractors):
             m = self.con[c["company"]]
             if m["lvl"] == 2:
                 text = (f'Paying ahead of work: {c["company"]} — paid {round(m["paid_pct"] * 100)}%, '
