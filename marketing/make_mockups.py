@@ -94,7 +94,7 @@ SLIDES.append(("01_hero", page(
     + card("Dashboard", img("dash_top", width=1780), 310, 560, 1780, 1070)
     + pill("🔴 30+ actions ranked for you", "overdue payments, late orders, decisions…", CORAL,
            right=70, top=500)
-    + badges(["Excel & Google Sheets", "Any currency", "No macros", "Instant download"]))))
+    + badges(["Microsoft Excel", "Windows & Mac", "Any currency", "No macros", "Instant download"]))))
 
 # 2 — next actions
 SLIDES.append(("02_next_actions", page(
@@ -198,7 +198,7 @@ SLIDES.append(("10_lite_vs_pro", page(
     'th small{display:block;font-size:28px;font-weight:400;opacity:.85;margin-top:6px}</style>'
     '<table><tr><th style="text-align:left">Feature</th><th>LITE<small>7 tabs</small></th>'
     f'<th>PRO<small>16 tabs</small></th></tr>{tbl}</table>'
-    + badges(["Excel 2016+ & Google Sheets", "Any currency · m² or ft²", "Demo + blank file",
+    + badges(["Excel 2016+ · Windows & Mac", "Any currency · m² or ft²", "Demo + blank file",
               "Quick Start guide"]), edition=None)))
 
 
@@ -210,7 +210,7 @@ def square_thumb():
             '<h1>Run your renovation<br>like a pro.</h1>'
             + card("Dashboard", img("dash_top", width=1000), 100, 420, 1000, 600)
             + '<div class="foot" style="left:110px;right:auto;bottom:60px;font-size:34px;'
-              'color:#0F5E5E;font-weight:700">Excel &amp; Google Sheets planner</div>'
+              'color:#0F5E5E;font-weight:700">Excel renovation planner</div>'
             + "</body></html>")
 
 

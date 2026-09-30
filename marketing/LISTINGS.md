@@ -14,7 +14,7 @@ Copy-paste ready. Prices assume the launch plan: **Lite $39 · Pro $59**. Change
 
 **Title (max 140 characters)**
 ```
-Renovation Planner Spreadsheet, Home Renovation Budget Tracker, Contractor Payment Tracker, Excel Google Sheets Template, Remodel Planner
+Renovation Planner Spreadsheet, Home Renovation Budget Tracker, Contractor Payment Tracker, Excel Template, Remodel Planner, Gantt Chart
 ```
 
 **13 tags (max 20 characters each)**
@@ -25,7 +25,7 @@ home renovation
 renovation budget
 contractor tracker
 excel template
-google sheets
+excel planner
 budget spreadsheet
 project planner
 house renovation
@@ -43,7 +43,7 @@ RENOVATION OS — run your renovation like a pro 🏠
 
 Managing your own renovation? Renovation OS is the all-in-one spreadsheet that keeps your budget, contractors, payments and timeline under control — and tells you exactly what to do every Monday.
 
-Built for homeowners managing a renovation themselves. Works in Excel and Google Sheets. No macros, no add-ons, no subscriptions.
+Built for homeowners managing a renovation themselves. Made for Microsoft Excel (Windows & Mac). No macros, no add-ons, no subscriptions.
 
 ━━━━━━━━━━━━━━━━━━
 WHY PEOPLE USE IT
@@ -92,8 +92,9 @@ EASY TO USE
 ━━━━━━━━━━━━━━━━━━
 REQUIREMENTS
 ━━━━━━━━━━━━━━━━━━
-• Microsoft Excel 2016 or newer (Windows or Mac), or a free Google account for Google Sheets
-• A computer is recommended for setup; phones work for quick updates
+• Microsoft Excel 2016, 2019, 2021, 2024 or Microsoft 365 — Windows or Mac
+• A computer is recommended (not designed for phones)
+• Not compatible with Google Sheets or Apple Numbers
 
 ━━━━━━━━━━━━━━━━━━
 PLEASE NOTE
@@ -115,7 +116,7 @@ Looking for something simpler? Renovation OS LITE (7 tabs) is also available in 
 
 **Title**
 ```
-Renovation Budget Tracker Spreadsheet, Home Renovation Planner, Contractor Payment Tracker, Excel Google Sheets, Simple Remodel Budget
+Renovation Budget Tracker Spreadsheet, Home Renovation Planner, Contractor Payment Tracker, Excel Template, Simple Remodel Budget
 ```
 
 **13 tags:** use the same tags as Pro, but replace `gantt chart excel` with `simple budget` and `kitchen remodel` with `diy renovation`.
@@ -144,7 +145,7 @@ Want quote comparison with hidden costs, change-order previews, order-by dates f
 
 ## GUMROAD — one product, two versions
 
-**Product name:** `Renovation OS — The Renovation Planner Spreadsheet (Excel & Google Sheets)`
+**Product name:** `Renovation OS — The Renovation Planner for Microsoft Excel`
 
 **URL slug:** `renovation-os`
 
@@ -183,7 +184,7 @@ You're spending tens of thousands on your home and managing it yourself. Renovat
 - Quick Start Guide (PDF) — set up in 10 minutes
 
 ## Works with
-Excel 2016+ (Windows/Mac) and Google Sheets. Any currency, any tax name, m² or ft². No macros, no subscriptions. 1,000 rows per list.
+Microsoft Excel 2016+ or Microsoft 365, Windows or Mac (not Google Sheets / Numbers). Any currency, any tax name, m² or ft². No macros, no subscriptions. 1,000 rows per list.
 
 ## Good to know
 Digital download — all sales are final once delivered, so please ask any question before you buy. Personal-use licence: please don't share or resell the files. A planning tool, not financial or legal advice.
@@ -209,9 +210,9 @@ Good luck with your renovation!
 
 ## FAQ for both platforms (add to listing or pinned shop FAQ)
 
-**Do I need Excel?** No. Google Sheets (free) works too. Upload the file to Google Drive and choose *File ▸ Save as Google Sheets*.
+**Do I need Excel?** Yes: Microsoft Excel 2016 or newer, or Microsoft 365. Google Sheets and Apple Numbers are not supported.
 
-**Does it work on a Mac?** Yes, with Excel 2016+ for Mac, or Google Sheets in any browser.
+**Does it work on a Mac?** Yes, with Excel 2016+ for Mac or Microsoft 365.
 
 **Can I change the categories and rooms?** Yes. Rename, add or clear them, and every dropdown follows.
 

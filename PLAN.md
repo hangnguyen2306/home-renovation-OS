@@ -12,7 +12,7 @@ Status: **built** — all 4 workbooks generated, `test_workbook.py` passes (0 fo
 | `test_workbook.py` | LibreOffice headless recalculation (Python-UNO) → error scan + circular-ref scan + asserts vs. Python-computed expected values |
 | `demo_data.py` | Demo dataset (single source of truth, used by the builder AND by the test's expected-value calculation) |
 | `dist/Renovation_OS_{DEMO,BLANK}_{EUR,USD}.xlsx` | 4 outputs |
-| `QUICKSTART.md`, `GOOGLE_SHEETS_CHECKLIST.md` | Buyer guide + your manual QA list |
+| `QUICKSTART.md`, `EXCEL_CHECKLIST.md` | Buyer guide + your manual QA list (*Built:* Google Sheets dropped — Excel only) |
 
 ---
 

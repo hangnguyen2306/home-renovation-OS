@@ -1,6 +1,6 @@
 # Renovation OS
 
-A 100% formula-driven home-renovation management workbook (Excel 2016+ and Google Sheets):
+A 100% formula-driven home-renovation management workbook for Microsoft Excel 2016+ / Microsoft 365 (Windows & Mac):
 no macros, no scripts, no external links.
 
 | Command | What it does |
@@ -13,6 +13,6 @@ no macros, no scripts, no external links.
 
 - `PLAN.md` — sheet layouts, cell map, alert engine design.
 - `QUICKSTART.md` — 1-page buyer guide.
-- `GOOGLE_SHEETS_CHECKLIST.md` — manual checks after uploading to Google Sheets.
+- `EXCEL_CHECKLIST.md` — manual checks in real Excel before each release.
 - Code: `ros/core.py` (styles, helpers, formula whitelist linter), `ros/layout.py` (cell map),
   `ros/sheets_*.py` (one builder per tab group), `demo_data.py` (demo scenario).

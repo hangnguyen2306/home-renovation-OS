@@ -2,7 +2,7 @@
 
 **Renovation OS** runs your whole renovation from one spreadsheet: the budget, quotes, contractors, payments, change orders, timeline, orders, issues and documents. Everything is calculated for you, and every Monday it tells you exactly what to do.
 
-Works in **Microsoft Excel 2016+** and **Google Sheets**. No macros, no add-ons and no internet connection needed.
+Made for **Microsoft Excel 2016+ / Microsoft 365** on Windows or Mac. No macros, no add-ons and no internet connection needed. (Google Sheets and Apple Numbers are not supported.)
 
 ---
 
@@ -27,7 +27,6 @@ Works in **Microsoft Excel 2016+** and **Google Sheets**. No macros, no add-ons 
 | `Renovation_OS_DEMO.xlsx` | Explore first. It holds a realistic ~135k renovation, frozen on 15 Jun 2026 so that every alert and chart shows something. |
 | `Renovation_OS_BLANK.xlsx` | Your own project. The structure and formulas are the same, and it is empty and ready to fill in. |
 
-*Google Sheets:* go to Drive ▸ New ▸ File upload, then right-click the file ▸ Open with ▸ Google Sheets ▸ File ▸ Save as Google Sheets.
 
 ## The only rule: yellow = you type
 

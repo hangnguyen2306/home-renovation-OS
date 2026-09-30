@@ -11,7 +11,6 @@ from playwright.sync_api import sync_playwright
 
 # ---------------------------------------------------------------- settings (edit these)
 SUPPORT = ""          # e.g. "hello@yourdomain.com" — empty = "message me on Etsy / Gumroad"
-SHEETS_COPY_LINK = ""  # optional Google Sheets ".../copy" link; empty = upload-it-yourself steps
 YEAR, AUTHOR = 2026, "Hang Nguyen"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -26,15 +25,6 @@ def shot(name, width="100%"):
 
 support = (f"email <b>{SUPPORT}</b>" if SUPPORT else
            "send me a message through the shop where you bought it (Etsy or Gumroad)")
-if SHEETS_COPY_LINK:
-    sheets_steps = (f"<li>Open this link while signed in to Google: <b>{SHEETS_COPY_LINK}</b></li>"
-                    "<li>Click <b>Make a copy</b>. Your own copy appears in your Google Drive.</li>")
-else:
-    sheets_steps = ("<li>Go to <b>drive.google.com</b> ▸ <b>New ▸ File upload</b> and choose the "
-                    "<b>.xlsx</b> file.</li>"
-                    "<li>Double-click it, then <b>File ▸ Save as Google Sheets</b>. Work in that new "
-                    "copy (the one without the “.XLSX” badge).</li>")
-
 HTML = f"""<!doctype html><html><head><meta charset="utf-8"><style>
 @page {{ size: A4; margin: 16mm 16mm 18mm 16mm; }}
 * {{ box-sizing: border-box; }}
@@ -91,23 +81,30 @@ table.tabs td {{ padding: 1.8mm 3mm; border-bottom: .5pt solid #E1E7E7; vertical
   original purchaser for personal use only — see “Licence” at the end of this guide.</p>
 </section>
 
-<h2>1 · Open the file</h2>
+<h2>1 · Open the file in Microsoft Excel</h2>
 <div class="two">
-  <div class="nb"><h3>Microsoft Excel (2016 or newer)</h3>
+  <div class="nb"><h3>Get started</h3>
     <ol class="steps">
-      <li>Save the <b>BLANK</b> file somewhere safe, e.g. a “Renovation” folder.</li>
-      <li>Open it. If Excel shows a yellow “Protected View” bar, click
+      <li>Save the <b>BLANK</b> file somewhere safe, e.g. a “Renovation” folder on your computer
+          or OneDrive.</li>
+      <li>Open it in <b>Microsoft Excel</b>. If Excel shows a yellow “Protected View” bar, click
           <b>Enable Editing</b>.</li>
       <li>Start on the <b>Start Here</b> tab.</li>
     </ol></div>
-  <div class="nb"><h3>Google Sheets</h3>
-    <ol class="steps">{sheets_steps}
-      <li>Start on the <b>Start Here</b> tab.</li>
-    </ol></div>
+  <div class="nb"><h3>Requirements</h3>
+    <ul style="margin:2mm 0 0 5mm;padding:0">
+      <li>Microsoft Excel 2016, 2019, 2021, 2024 or Microsoft 365.</li>
+      <li>Windows or Mac.</li>
+      <li>No macros, add-ons or internet connection needed.</li>
+      <li>A computer is recommended — the tabs are designed for a full screen.</li>
+    </ul>
+    <p class="small" style="margin-top:3mm">Renovation OS is built and supported for Microsoft
+    Excel only. Other spreadsheet apps (such as Google Sheets or Apple Numbers) do not support
+    all of its features and protection.</p></div>
 </div>
-<p class="small">Works on Windows, Mac and in the browser. No macros, add-ons or internet
-connection needed. Mobile apps work for viewing and quick updates; set-up is easier on a
-computer.</p>
+<div class="box nb"><b>Tip:</b> keep an untouched copy of the BLANK file as a backup, and save
+your project file regularly (Excel ▸ File ▸ Save). If you store it in OneDrive, Excel keeps
+version history for you.</div>
 
 <h2>2 · The only rule: yellow = you type</h2>
 <table class="legend">

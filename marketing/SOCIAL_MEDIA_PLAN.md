@@ -51,7 +51,7 @@ Instagram and Facebook both work. Run them from one Meta Business account and cr
 
 ## Links and bio
 
-- **Bio:** "Renovation planner spreadsheets 🏠 Stay on budget & on time. Excel + Google Sheets." Link in bio → your Etsy shop or Gumroad page. Use Linktree if you want both.
+- **Bio:** "Renovation planner spreadsheets 🏠 Stay on budget & on time. Made for Excel." Link in bio → your Etsy shop or Gumroad page. Use Linktree if you want both.
 - Add a **UTM-tagged link** or a platform-specific discount code (e.g. `INSTA15`, `PIN15`) so you know which platform actually sells.
 
 ## What to avoid
