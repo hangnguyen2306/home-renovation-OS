@@ -1,19 +1,29 @@
 #!/usr/bin/env python3
 """Render vertical Pinterest pins (1000×1500, 2:3) + pins.csv with titles/descriptions/keywords.
 
+    python3 marketing/make_pins.py              → marketing/pins/          (link: product page)
+    python3 marketing/make_pins.py --waitlist   → marketing/pins_waitlist/ (link: free checklist
+                                                   signup; used before the product is on sale)
+
 Uses the real screenshots in marketing/shots/ (run capture.py first).
 Run from repo root:  python3 marketing/make_pins.py
 """
 import csv
 import os
+import sys
 
 from playwright.sync_api import sync_playwright
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHOTS = os.path.join(HERE, "shots")
-OUT = os.path.join(HERE, "pins")
+WAITLIST = "--waitlist" in sys.argv
+OUT = os.path.join(HERE, "pins_waitlist" if WAITLIST else "pins")
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
-LINK = "https://YOUR-GUMROAD-LINK"   # ← replace with your product URL before uploading
+PRODUCT_LINK = "https://YOUR-GUMROAD-LINK"        # ← your product URL (after launch)
+WAITLIST_LINK = "https://YOUR-SIGNUP-PAGE-LINK"    # ← your free-checklist signup page (now)
+LINK = WAITLIST_LINK if WAITLIST else PRODUCT_LINK
+CTA2 = "Free checklist →" if WAITLIST else "Get it →"
+DESC_SUFFIX = " Free download: the Renovation Money Checklist — 15 hidden costs, payment rules and documents to keep."
 W, H = 1000, 1500
 
 TEAL, TEAL_DARK, CREAM, INK, GREY, CORAL, AMBER = ("#0F5E5E", "#0A4242", "#F6F3EC", "#1F2937",
@@ -80,7 +90,8 @@ def tips(items, top):
     return f'<ul class="tips" style="top:{top}px">{li}</ul>'
 
 
-def page(body, dark=False, kicker=None, cta="Renovation OS · Excel planner", cta2="Get it →"):
+def page(body, dark=False, kicker=None, cta="Renovation OS · Excel planner", cta2=None):
+    cta2 = cta2 or CTA2
     k = f'<div class="kicker">{kicker}</div>' if kicker else ""
     return (f"<html><head><meta charset='utf-8'><style>{CSS}</style></head>"
             f"<body class='{'dark' if dark else ''}'><div class='brand'>RENOVATION <span>OS</span></div>"
@@ -260,6 +271,34 @@ PINS = [
 ]
 
 
+if WAITLIST:
+    LM = os.path.join(HERE, "leadmagnet_cover.png")
+    PINS = PINS + [
+        ("19_free_checklist",
+         page('<h1 style="top:175px">FREE: The Renovation <em>Money</em> Checklist</h1>'
+              + '<div class="sub" style="top:400px">15 hidden costs · payment rules · documents to keep. '
+                'Print it and take it to every contractor meeting.</div>'
+              + f'<div class="card" style="top:560px;height:760px;left:150px;right:150px">'
+                f'<img src="file://{LM}" style="width:100%"></div>',
+              kicker="Free download", cta="The Renovation Money Checklist", cta2="Get it free →"),
+         "FREE Renovation Checklist: 15 Hidden Costs + Documents to Keep",
+         "A free, printable renovation checklist: 15 hidden costs to check in every contractor quote, how much contingency to keep, payment rules that protect you, the documents you must keep and when to order materials. Take it to every contractor meeting.",
+         "Renovation Tips", "free renovation checklist, renovation budget checklist, contractor quote checklist, printable checklist, renovation tips",
+         "Cover of the free printable Renovation Money Checklist PDF"),
+        ("20_questions_contractor",
+         page(h1("5 questions to ask <em>before</em> you sign a quote", 160)
+              + tips(["Who pays for <b>skips &amp; waste</b>?", "Is <b>delivery &amp; carrying</b> included?",
+                      "What if we find <b>asbestos or rot</b>?", "Are <b>taps, sockets &amp; handles</b> included?",
+                      "How long is the <b>price fixed</b>?"], 450)
+              + '<div class="sub" style="top:1180px;font-weight:700;color:#0F5E5E">'
+                '+10 more in the free checklist</div>',
+              kicker="Before you sign", cta="The Renovation Money Checklist", cta2="Get it free →"),
+         "5 Questions to Ask a Contractor Before You Sign a Quote",
+         "Ask these before signing any renovation quote: who pays for waste, is delivery included, what happens if asbestos or rot is found, are fittings included, and how long is the price fixed. Get all 15 questions in the free Renovation Money Checklist.",
+         "Renovation Tips", "questions to ask contractor, renovation quote, contractor tips, renovation checklist, hiring a contractor",
+         "List of five questions to ask a contractor before signing a renovation quote"),
+    ]
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     with sync_playwright() as p:
@@ -279,6 +318,8 @@ def main():
                     "Suggested day"])
         for i, (name, _h, title, desc, board, kw, alt) in enumerate(PINS, 1):
             assert len(title) <= 100 and len(desc) <= 500 and len(alt) <= 500, name
+            if WAITLIST and "Free" not in desc and "free" not in desc:
+                desc = (desc + DESC_SUFFIX) if len(desc + DESC_SUFFIX) <= 500 else desc
             w.writerow([name + ".png", title, desc, LINK, board, kw, alt, f"Day {i}"])
     print(f"{len(PINS)} pins → {OUT}")
 
