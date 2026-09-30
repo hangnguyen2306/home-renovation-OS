@@ -36,11 +36,33 @@ Status: **draft for review** (no code written yet).
 
 **Formats**
 - Dates: `DD MMM YYYY` (number format, never `TEXT()` — `TEXT` date codes are locale-dependent and break in German/Dutch/French Excel).
-- Money EUR: `#,##0 "€"` · USD: `"$"#,##0` — negatives in red with minus. Percent `0%`.
+- Money: `#,##0;[Red]-#,##0` — **no currency symbol inside number formats**, because the currency is a user choice (see §1a) and a number format cannot change with a dropdown in Google Sheets. The symbol appears in column headers and KPI labels, built by formula, e.g. `="Budget ("&CurSym&")"`. Thousands/decimal separators follow the buyer's own locale automatically (12,500 vs 12.500). Percent `0%`.
 - All sheets protected, no password; only INPUT cells unlocked. Protection options allow format columns/rows + sort off + autofilter off.
 
+### 1a. User preferences (dropdowns on Start Here)
+Everything "general" is a dropdown the buyer picks once; every sheet reads it through a named range. The EUR/USD build flag only sets the **defaults** of these dropdowns — both files can be switched to any option afterwards.
+
+| Preference | Dropdown options | Default EUR / USD | What it changes |
+|---|---|---|---|
+| Currency | EUR €, USD $, GBP £, CHF, CAD $, AUD $, NZD $, SEK kr, NOK kr, DKK kr, PLN zł, CZK Kč, Other | EUR € / USD $ | `CurSym` in every money header, KPI label, chart title, alert text |
+| Custom currency symbol | free text (only used when "Other") | — | `CurSym` |
+| Tax name | VAT, Sales tax, GST, HST, TVA, MwSt, BTW, IVA, None | VAT / Sales tax | `TaxName` in labels: "Price incl. VAT?", "Total budget incl. Sales tax" |
+| Default tax rate | % input | 21% / 0% | `VatRate` (quote normalization) |
+| Prices usually quoted incl. tax? | Yes / No | Yes / Yes | default value pre-filled into each Quotes "incl. tax?" cell (still overridable per quote) |
+| Area unit | m², ft² | m² / ft² | Rooms floor-area label + "Cost per m²/ft²" per room and on Dashboard (new input: floor area per room + total floor area on Start Here) |
+| Week starts on | Monday, Sunday | Monday / Sunday | This Week default week-start, Gantt week columns, weekly counts: `AsOf - IF(WeekStart="Sunday", WEEKDAY(AsOf,1)-1, WEEKDAY(AsOf,3))` |
+| Health "attention" band on budget lines | 0%, 5%, 10% | 5% | Budget 🟡 threshold per category |
+| (existing) Alert window, decide buffer, order buffer, overpayment tolerance, contingency % | number inputs | as before | as before |
+
+Not offered as a dropdown (and why):
+- **Date format** — fixed `DD MMM YYYY` (unambiguous in every country; month names auto-translate to the buyer's locale). Switching date formats by dropdown would need conditional-format number formats, which Google Sheets ignores.
+- **Symbol placement (€12,500 vs 12,500 €)** — no symbol in cells, so not needed.
+- **Language** — English only in v1 (see open questions).
+
+Lists sheet holds a Currency table (label → symbol) so `CurSym = IF(Currency="Other", CustomSym, INDEX(Lists!CurSymbols, MATCH(Currency, Lists!CurLabels, 0)))`.
+
 **Global named ranges** (defined names — supported by Excel 2016 and Google Sheets import)
-`ProjName, ProjStart, TargetEnd, TotalBudget, ContPct, ContAmt, WorkBudget, VatRate, AlertDays, DecideBuf, OrderBuf, OverpayTol, AsOf` (+ a few per-sheet totals used by Dashboard).
+`CurSym, TaxName, DefInclTax, AreaUnit, WeekStart, BudgetWarnPct, TotalArea, ProjName, ProjStart, TargetEnd, TotalBudget, ContPct, ContAmt, WorkBudget, VatRate, AlertDays, DecideBuf, OrderBuf, OverpayTol, AsOf` (+ a few per-sheet totals used by Dashboard).
 
 **`AsOf` ("today")** = `IF(Start_Here!AsOfOverride="",TODAY(),AsOfOverride)`. Every formula uses `AsOf`, never `TODAY()` directly.
 - BLANK: override empty → live today.
@@ -76,8 +98,10 @@ Row capacities (pre-formatted, validated, formula-filled):
 | Warranties / Maintenance | 100 / 40 | Warranty |
 
 ### 2.1 START HERE (teal, gridlines off)
-- B5:C17 **Setup inputs** (yellow C): Project name, Address, Currency label (display only), Project start, Target move-in, Total budget incl. VAT, Contingency % (10%), VAT rate (EUR 21% / USD 0% "Sales tax"), Alert window days (7), Decide buffer days (7), Order safety buffer days (5), Overpayment tolerance (10%), "Today" override (blank).
-- C19 Contingency amount `=TotalBudget*ContPct`, C20 Working budget `=TotalBudget-ContAmt`.
+- B5:C12 **Your project** (yellow C): Project name, Address, Project start, Target move-in, Total budget incl. tax, Total floor area, "Today" override (blank).
+- B14:C22 **Preferences** (yellow dropdowns, §1a): Currency, Custom symbol, Tax name, Default tax rate, Prices usually incl. tax?, Area unit, Week starts on, Budget attention band.
+- B24:C29 **Alert settings**: Contingency % (10%), Alert window days (7), Decide buffer days (7), Order safety buffer days (5), Overpayment tolerance (10%).
+- C31 Contingency amount `=TotalBudget*ContPct`, C32 Working budget `=TotalBudget-ContAmt`.
 - E5:J17 **Get started in 10 minutes** — 5 numbered steps (Setup → Budget categories → Contractors & quotes → Timeline → Check Dashboard every Monday / This Week every Friday).
 - E19:J22 **Colour legend**: yellow swatch "You type here", white "Automatic — don't type", 🟢🟡🔴 meanings.
 - Tab map: one-line description of every tab (hyperlinks via `HYPERLINK("#'Budget'!A1",…)` — internal links only).
@@ -93,7 +117,7 @@ Row capacities (pre-formatted, validated, formula-filled):
 - Rows 38+: **Charts** — clustered bar "Budget vs Forecast by category" (reads Budget cols, only non-empty categories shown via 30-row range; blanks render as empty bars — acceptable), column chart "Monthly cash flow" (Payments cash-flow table: Paid vs Scheduled, 12 months).
 
 ### 2.3 THIS WEEK (teal, gridlines off)
-- C4 Week start (yellow) default formula `=AsOf-WEEKDAY(AsOf,3)` (Monday); C5 week end = C4+6.
+- C4 Week start (yellow) default formula `=AsOf-IF(WeekStart="Sunday",WEEKDAY(AsOf,1)-1,WEEKDAY(AsOf,3))`; C5 week end = C4+6.
 - **MONDAY PLAN** counts (COUNTIFS on dates between C4:C5): decisions due, orders due, payments due, deliveries expected, tasks starting, tasks ending, open issues.
 - Top-10 Engine alerts with due ≤ week end (Engine has a second ranking column for "due ≤ WeekEnd" — see Engine).
 - **FRIDAY REVIEW** auto numbers: paid this week (SUMIFS paid date), COs approved this week + cost, tasks completed (done date), issues opened / closed.
@@ -152,7 +176,7 @@ Row capacities (pre-formatted, validated, formula-filled):
 - Forecast completion = `MAX(End)` → named `ForecastEnd`.
 
 ### 2.10 ROOMS (orange)
-- 10 room cards in a 2 × 5 grid (each card ~12 rows × 5 cols). Room name yellow (6 prefilled + 4 "Custom room N"). Budget (yellow), Committed (contractors with Main room = room + selections + approved COs), Paid (payments tagged room), Progress bar `REPT` + % (Timeline done/total for room), decisions waiting, open issues, contractors involved (first 3 distinct from Timeline via hidden helper ranks), status icon.
+- 10 room cards in a 2 × 5 grid (each card ~12 rows × 5 cols). Room name yellow (6 prefilled + 4 "Custom room N"). Floor area (yellow, label shows `AreaUnit`), Budget (yellow), Cost per area = Forecast/area, Committed (contractors with Main room = room + selections + approved COs), Paid (payments tagged room), Progress bar `REPT` + % (Timeline done/total for room), decisions waiting, open issues, contractors involved (first 3 distinct from Timeline via hidden helper ranks), status icon.
 - Lists!Rooms is formula-linked to these names, so renaming a room renames the dropdown option everywhere.
 
 ### 2.11 SELECTIONS & ORDERS (orange)
@@ -194,7 +218,7 @@ Total ≈ 1,162 engine rows. Engine columns: Source tab, AlertText, Due, Priorit
 Ranked output (rows 1–25 of an output area): `k`, `SMALL(Key,k)`, `MATCH(thatKey,Key,0)`, then `INDEX` for tab, text, due, priority. `COUNT(Key)` = total alerts. Everything wrapped in `IFERROR(…,"")`.
 
 ### 2.16 LISTS (hidden)
-Status lists, phases, severities, Y/N, Included/Not included/Unclear, doc types, photo stages, reasons, A/B/C; **dynamic-by-reference** lists: Categories (→ Budget B8:B37), Rooms (→ Rooms names + "Whole house"), Contractors (→ Contractors B6:B35). Validation uses direct ranges `=Lists!$X$2:$X$31` (blank tail entries are harmless).
+Currency table (label, symbol), tax names, area units, week-start options, status lists, phases, severities, Y/N, Included/Not included/Unclear, doc types, photo stages, reasons, A/B/C; **dynamic-by-reference** lists: Categories (→ Budget B8:B37), Rooms (→ Rooms names + "Whole house"), Contractors (→ Contractors B6:B35). Validation uses direct ranges `=Lists!$X$2:$X$31` (blank tail entries are harmless).
 
 ---
 
@@ -248,8 +272,8 @@ Expected result: overall 🔴 ACTION REQUIRED with ~15–20 alerts, every alert 
 
 ## 7. Open questions (defaults I'll use if you don't answer)
 1. **Demo "today" pinned to 15 Jun 2026** (override cell on Start Here) — OK? *(Default: yes.)*
-2. **USD variant**: label "Sales tax" instead of "VAT", default rate 0% (prices entered incl. tax), `$` prefix; same demo numbers? *(Default: yes, identical demo figures.)*
-3. **EUR format**: `#,##0 "€"` (e.g. `12.500 €` in DE locale) vs `€12,500`? *(Default: suffix `€`.)*
+2. **USD variant** = same workbook with preference defaults USD $ / Sales tax 0% / ft² / week starts Sunday; same demo figures (demo room areas converted to ft²). *(Default: yes.)*
+3. **Currency symbol only in headers/labels, not in the number cells** (required for a switchable currency that works in Google Sheets). *(Default: yes.)*
 4. **Predecessor-above rule** in Timeline (prevents circular refs) — acceptable? *(Default: yes, with a visible warning flag.)*
 5. **Room attribution of money**: contractors get one "Main room" (or "Whole house"), payments/selections/COs carry their own room tag. Whole-house items are not split across rooms. OK? *(Default: yes.)*
 6. Workbook language: English only for v1? *(Default: yes.)*
