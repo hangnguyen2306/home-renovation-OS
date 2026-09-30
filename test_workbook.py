@@ -161,6 +161,17 @@ def static_checks(path, lite):
     check(wb.sheetnames == (C.LITE_SHEETS if lite else C.SHEET_ORDER), f"sheet order {wb.sheetnames}")
     for ws in wb.worksheets:
         check(ws.protection.sheet, f"{ws.title} not protected")
+        check(bool(ws.protection.password), f"{ws.title} has no protection password")
+        check(ws.protection.selectLockedCells, f"{ws.title}: locked cells must not be selectable")
+        if ws.sheet_state == "visible":
+            check(ws["B3"].value == C.LICENSE_LINE, f"{ws.title}: licence line missing")
+    check(wb.security is not None and wb.security.lockStructure,
+          "workbook structure not locked")
+    check(wb.properties.creator == C.AUTHOR, "author metadata")
+    shown = [f"{ws.title}!{c.coordinate}" for ws in wb.worksheets for row in ws.iter_rows()
+             for c in row if isinstance(c.value, str) and c.value.startswith("=")
+             and c.protection.locked and not c.protection.hidden]
+    check(not shown, f"{len(shown)} locked formula cells not hidden, e.g. {shown[:3]}")
     check(wb[C.S_ENG].sheet_state == "hidden" and wb[C.S_LISTS].sheet_state == "hidden",
           "Engine/Lists must be hidden")
     check(not getattr(wb, "_external_links", []), "external links present")
@@ -180,6 +191,8 @@ def static_checks(path, lite):
                     continue
                 if ws.title == C.S_START and c.coordinate == "F18":
                     continue   # legend swatch showing the input colour
+                if ws.title == C.S_START and c.hyperlink is not None:
+                    continue   # tab links stay clickable
                 yellow = c.fill is not None and c.fill.fgColor is not None and \
                     str(c.fill.fgColor.rgb).endswith(C.INPUT)
                 if yellow and c.protection.locked:

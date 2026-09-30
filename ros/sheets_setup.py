@@ -259,8 +259,8 @@ def build_start(ctx):
         ws.merge_cells(f"G{rr}:K{rr}")
         put(ws, f"G{rr}", text, "label")
         ws.row_dimensions[rr].height = 22
-    put(ws, "G23", "Sheets are protected without a password: Review ▸ Unprotect sheet if you "
-        "really need to change a formula.", "note")
+    put(ws, "G23", "White cells are locked and protected, so a formula can never be broken by "
+        "accident. Type only in the yellow cells.", "note")
 
     # ---------------------------------------------------------- tab map
     section(ws, "F25", "YOUR TABS", "K")
@@ -289,6 +289,7 @@ def build_start(ctx):
         link = ws[f"G{rr}"]
         link.value = name
         link.hyperlink = f"#{C.q(name)}!A1"
+        link.protection = C.UNLOCKED   # clickable even though locked cells can't be selected
         link.font = C.font(10, True, C.ACCENT)
         link.font = C.Font(name=C.FONT, size=10, bold=True, color=C.ACCENT, underline="single")
         ws.merge_cells(f"I{rr}:K{rr}")
@@ -303,5 +304,13 @@ def build_start(ctx):
         up.alignment = Alignment(wrap_text=True, vertical="center", indent=1)
         ws.row_dimensions[rr].height = 22
         ws.row_dimensions[rr + 1].height = 22
+    # ---------------------------------------------------------- licence
+    section(ws, "B41", "LICENCE & TERMS OF USE", "K")
+    for i, line in enumerate(C.LICENSE_TEXT):
+        r = 42 + i
+        ws.merge_cells(f"B{r}:K{r}")
+        c = put(ws, f"B{r}", line, "label", bold=i == 0, wrap=True,
+                color=C.DARK if i == 0 else C.GREY_TEXT)
+        ws.row_dimensions[r].height = 18 if i == 0 else 28
     ws.freeze_panes = "A3"
     C.protect(ws)

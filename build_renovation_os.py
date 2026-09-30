@@ -9,6 +9,7 @@ Usage:
 """
 import argparse
 import os
+import secrets
 import sys
 
 from openpyxl import Workbook
@@ -70,17 +71,35 @@ BUILDERS = [
 ]
 
 
+PASSWORD_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".protection_password")
+
+
+def protection_password():
+    """Sheet/workbook password: $RENOVATION_OS_PASSWORD, else .protection_password (git-ignored),
+    else a new random one saved there. Keep it — you need it to edit your own master files."""
+    pw = os.environ.get("RENOVATION_OS_PASSWORD")
+    if pw:
+        return pw
+    if os.path.exists(PASSWORD_FILE):
+        return open(PASSWORD_FILE).read().strip()
+    pw = secrets.token_urlsafe(12)
+    with open(PASSWORD_FILE, "w") as f:
+        f.write(pw + "\n")
+    return pw
+
+
 def file_name(edition, variant, currency):
     prefix = "Renovation_OS_LITE" if edition == "LITE" else "Renovation_OS"
     return f"{prefix}_{variant}_{currency}.xlsx"
 
 
-def build(currency, variant, out_dir, edition="PRO"):
+def build(currency, variant, out_dir, edition="PRO", password=None):
     ctx = Context(currency, variant == "DEMO", lite=edition == "LITE")
     sheets_setup.register_lists(ctx)
     for sheet, fn in BUILDERS:
         if sheet in ctx.wb.sheetnames:
             fn(ctx)
+    C.harden(ctx.wb, password or protection_password())
 
     errors = C.lint_workbook(ctx.wb)
     if errors:
@@ -99,6 +118,8 @@ def main(argv=None):
     ap.add_argument("--variant", choices=["DEMO", "BLANK", "ALL"], default="ALL")
     ap.add_argument("--edition", choices=["PRO", "LITE", "ALL"], default="ALL")
     ap.add_argument("--out", default="dist")
+    ap.add_argument("--password", help="sheet/workbook protection password "
+                    "(default: $RENOVATION_OS_PASSWORD or .protection_password)")
     a = ap.parse_args(argv)
     curs = ["EUR", "USD"] if a.currency == "ALL" else [a.currency]
     vars_ = ["DEMO", "BLANK"] if a.variant == "ALL" else [a.variant]
@@ -106,7 +127,7 @@ def main(argv=None):
     for ed in eds:
         for cur in curs:
             for var in vars_:
-                print("built", build(cur, var, a.out, ed))
+                print("built", build(cur, var, a.out, ed, a.password))
 
 
 if __name__ == "__main__":

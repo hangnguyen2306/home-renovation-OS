@@ -437,3 +437,54 @@ def lint_workbook(wb):
                     for p in lint_formula("=" + fml):
                         errors.append(f"{ws.title} CF {cf.sqref}: {p}")
     return errors
+
+
+# ---------------------------------------------------------------- licence + hardening
+AUTHOR = "Hang Nguyen"
+COPYRIGHT_YEAR = 2026
+LICENSE_LINE = (f"© {COPYRIGHT_YEAR} {AUTHOR} — Renovation OS. Licensed to the original purchaser "
+                "for personal use only. Do not share, copy, resell or redistribute.")
+LICENSE_TEXT = [
+    f"Renovation OS © {COPYRIGHT_YEAR} {AUTHOR}. All rights reserved.",
+    "• This file is licensed, not sold, to the original purchaser for personal, non-commercial "
+    "use on their own home renovation.",
+    "• You may NOT share, copy, resell, redistribute, sublicense, give away or upload this file "
+    "(or any modified version or part of it) to any website, marketplace, group or other person.",
+    "• The formulas, structure, layout and design are the intellectual property of "
+    f"{AUTHOR}. Removing this notice or the sheet protection is not permitted.",
+    "• Digital product: all sales are final. No refunds once the file has been delivered.",
+    "• Provided “as is” as a planning aid, without warranty. It is not financial, legal or "
+    "construction advice — always check figures before you act on them.",
+]
+
+
+def harden(wb, password):
+    """Hide + lock every formula, password-protect sheets and workbook structure, stamp licence."""
+    from openpyxl.workbook.protection import WorkbookProtection
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for c in row:
+                v = c.value
+                if isinstance(v, str) and v.startswith("=") and c.protection.locked:
+                    c.protection = Protection(locked=True, hidden=True)
+        if ws.sheet_state == "visible":
+            b3 = ws["B3"]
+            assert b3.value is None, f"{ws.title}!B3 is not free for the licence line"
+            b3.value = LICENSE_LINE
+            b3.font = font(8, False, GREY_TEXT, True)
+            b3.protection = LOCKED
+            ws.oddFooter.left.text = f"© {COPYRIGHT_YEAR} {AUTHOR} · Renovation OS"
+            ws.oddFooter.left.size = 8
+            ws.oddFooter.right.text = "Personal licence — do not share or resell"
+            ws.oddFooter.right.size = 8
+        protect(ws)
+        ws.protection.selectLockedCells = True     # locked (formula) cells cannot be selected/copied
+        ws.protection.password = password
+    wb.security = WorkbookProtection(workbookPassword=password, lockStructure=True)
+    pr = wb.properties
+    pr.creator = AUTHOR
+    pr.lastModifiedBy = AUTHOR
+    pr.title = "Renovation OS"
+    pr.subject = "Home renovation management workbook"
+    pr.description = LICENSE_LINE
+    pr.keywords = f"Renovation OS; {AUTHOR}; personal licence"

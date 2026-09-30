@@ -40,6 +40,7 @@ Repeat sections 1–6 quickly on `Renovation_OS_LITE_DEMO_EUR.xlsx`. It has 7 vi
 - [ ] Charts read data from the hidden **Engine** sheet and from Payments. Confirm the charts still render with Engine hidden.
 
 ## 5. Protection
+- [ ] **Expected limitation:** Google Sheets drops Excel sheet passwords and hidden formulas. The buyer's own copy is fully editable by them, and its formulas are visible. Only the licence text on Start Here and the top line of every tab carries over; check that it is there.
 - [ ] Sheets converts xlsx sheet protection into *protected ranges/sheets*. Check Data ▸ Protect sheets and ranges: each tab is listed with the yellow cells as exceptions.
 - [ ] As a **second Google account with edit access** (the owner is never blocked), try typing in a white formula cell. You should get a warning or be blocked. Typing in a yellow cell should work.
 - [ ] Engine and Lists tabs are hidden (View ▸ Hidden sheets shows them).
