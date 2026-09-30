@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 dist/recalculated/
 .protection_password
+marketing/shots/*.pdf
