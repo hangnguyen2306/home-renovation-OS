@@ -19,7 +19,7 @@ Files: `dist/Renovation_OS_DEMO.xlsx`, `…_BLANK.xlsx`, `…_LITE_DEMO.xlsx`, `
 - [ ] Clicking a white (formula) cell does nothing. Yellow cells can be selected and typed in.
 - [ ] Right-click a sheet tab: *Unhide…* is greyed out (workbook structure locked).
 - [ ] Review ▸ Unprotect Sheet asks for the password.
-- [ ] Row 3 of every tab shows the © line. The licence block is at the bottom of Start Here. File ▸ Info ▸ Author = Hang Nguyen.
+- [ ] Row 3 of every tab shows the © line. The licence block is at the bottom of Start Here. File ▸ Info ▸ Author = Hang Nguyen, and the © line reads "© 2026 Renovation OS — created by Hang Nguyen".
 - [ ] Start Here tab links and the Contractors "💬 Communication log →" link jump correctly.
 
 ## 4. Dropdowns & behaviour

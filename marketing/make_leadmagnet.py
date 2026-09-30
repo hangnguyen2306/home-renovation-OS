@@ -9,6 +9,7 @@ import os
 from playwright.sync_api import sync_playwright
 
 YEAR, AUTHOR = 2026, "Hang Nguyen"
+NOTICE = f"© {YEAR} Renovation OS — created by {AUTHOR}"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHOTS = os.path.join(HERE, "shots")
 CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
@@ -102,7 +103,7 @@ ul.check{{list-style:none;padding:0;margin:0}} ul.check li{{padding:1.8mm 0;bord
   <div class="box"><b>How to use it:</b> print it, take it to every contractor meeting, and tick the
   boxes. If an item is not clearly in the quote, ask the question next to it — and get the answer
   in writing.</div>
-  <p class="small" style="position:absolute;bottom:0">© {YEAR} {AUTHOR} · Renovation OS. Free to use
+  <p class="small" style="position:absolute;bottom:0">{NOTICE}. Free to use
   for your own renovation. Please don’t resell or republish it — share the sign-up link instead.
   This checklist is general guidance, not financial, legal or construction advice.</p>
 </section>
@@ -189,7 +190,7 @@ def main():
                footer_template=(
                    "<div style='font-size:7pt;color:#8A9199;width:100%;padding:0 16mm;"
                    "display:flex;justify-content:space-between;font-family:Arial'>"
-                   f"<span>The Renovation Money Checklist · © {YEAR} {AUTHOR}</span>"
+                   f"<span>The Renovation Money Checklist · {NOTICE}</span>"
                    "<span><span class='pageNumber'></span> / <span class='totalPages'></span></span></div>"),
                margin={"top": "16mm", "bottom": "18mm", "left": "16mm", "right": "16mm"})
         b.close()

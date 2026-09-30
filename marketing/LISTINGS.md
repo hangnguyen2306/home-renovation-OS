@@ -107,7 +107,7 @@ PLEASE NOTE
 
 Looking for something simpler? Renovation OS LITE (7 tabs) is also available in my shop.
 
-© 2026 Hang Nguyen
+© 2026 Renovation OS — created by Hang Nguyen
 ```
 
 ---
@@ -235,7 +235,7 @@ PLEASE NOTE
 • Licensed for personal use by the purchaser only. Sharing, reselling or redistributing the files is not permitted.
 • Renovation OS is a planning tool, not financial, legal or construction advice.
 
-© 2026 Hang Nguyen
+© 2026 Renovation OS — created by Hang Nguyen
 ```
 
 **Version descriptions** (Gumroad shows these next to each version when the buyer chooses):

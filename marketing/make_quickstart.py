@@ -12,6 +12,7 @@ from playwright.sync_api import sync_playwright
 # ---------------------------------------------------------------- settings (edit these)
 SUPPORT = ""          # e.g. "hello@yourdomain.com" — empty = "message me on Etsy / Gumroad"
 YEAR, AUTHOR = 2026, "Hang Nguyen"
+NOTICE = f"© {YEAR} Renovation OS — created by {AUTHOR}"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SHOTS = os.path.join(HERE, "shots")
@@ -77,7 +78,7 @@ table.tabs td {{ padding: 1.8mm 3mm; border-bottom: .5pt solid #E1E7E7; vertical
       <li>This guide.</li>
     </ul>
   </div>
-  <p class="small" style="margin-top:8mm">Renovation OS © {YEAR} {AUTHOR}. Licensed to the
+  <p class="small" style="margin-top:8mm">{NOTICE}. Licensed to the
   original purchaser for personal use only — see “Licence” at the end of this guide.</p>
 </section>
 
@@ -202,11 +203,11 @@ list is finished.</div>
 tab and cell you are looking at — a screenshot helps.</p>
 
 <h2>Licence</h2>
-<p class="small">Renovation OS © {YEAR} {AUTHOR}. All rights reserved. The files are licensed,
+<p class="small">{NOTICE}. All rights reserved. The files are licensed,
 not sold, to the original purchaser for personal, non-commercial use on their own home
 renovation(s). You may not share, copy, resell, redistribute, sublicense, give away or upload the
 files — or any modified version or part of them — to any website, marketplace, group or other
-person. The formulas, structure, layout and design are the intellectual property of {AUTHOR};
+person. The formulas, structure, layout and design are protected by copyright and belong to Renovation OS;
 removing the copyright notice or the sheet protection is not permitted. Digital product: all
 sales are final once the files have been delivered. Provided “as is” as a planning aid without
 warranty; it is not financial, legal or construction advice — always check figures before you
@@ -228,7 +229,7 @@ def main():
                footer_template=(
                    "<div style='font-size:7pt;color:#8A9199;width:100%;padding:0 16mm;"
                    "display:flex;justify-content:space-between;font-family:Arial'>"
-                   f"<span>Renovation OS · Quick Start · © {YEAR} {AUTHOR}</span>"
+                   f"<span>Quick Start · {NOTICE}</span>"
                    "<span><span class='pageNumber'></span> / <span class='totalPages'></span>"
                    "</span></div>"),
                margin={"top": "16mm", "bottom": "18mm", "left": "16mm", "right": "16mm"})
